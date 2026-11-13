@@ -741,6 +741,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
+
+  // Vérification automatique des mises à jour au lancement
+  setTimeout(() => checkForAppUpdates(false), 2000);
 });
 
 // === COMPOSANTS DU FORMULAIRE DE VOYAGE ===
@@ -1274,6 +1277,13 @@ function initListeners() {
     if (!getActiveTrip()) return;
     window.print();
   });
+  document.getElementById('btnCheckUpdate')?.addEventListener('click', () => {
+    document.getElementById('moreDropdown')?.classList.remove('open');
+    document.getElementById('btnMoreMenu')?.setAttribute('aria-expanded', 'false');
+    checkForAppUpdates(true);
+  });
+  document.getElementById('updateDismissBtn')?.addEventListener('click', dismissUpdate);
+  document.getElementById('updateDownloadBtn')?.addEventListener('click', downloadAndInstallUpdate);
 
   // Confirm Modal
   document.getElementById('confirmCancelBtn')?.addEventListener('click', closeConfirmModal);
@@ -2320,4 +2330,145 @@ function escapeHtml(str) {
     "'": '&#39;',
     '"': '&quot;'
   }[tag] || tag));
+}
+
+// === AUTO-UPDATE SYSTEM (GitHub Releases) ===
+const CURRENT_APP_VERSION = "1.0.0";
+const GITHUB_REPO = "QuentinV1/checklist-valise";
+const UPDATE_DISMISSED_KEY = "valise_update_dismissed";
+
+function compareVersions(v1, v2) {
+  const clean1 = (v1 || '').replace(/^v/i, '').trim();
+  const clean2 = (v2 || '').replace(/^v/i, '').trim();
+  const parts1 = clean1.split('.').map(n => parseInt(n, 10) || 0);
+  const parts2 = clean2.split('.').map(n => parseInt(n, 10) || 0);
+  const len = Math.max(parts1.length, parts2.length);
+  for (let i = 0; i < len; i++) {
+    const p1 = parts1[i] || 0;
+    const p2 = parts2[i] || 0;
+    if (p1 > p2) return 1;
+    if (p1 < p2) return -1;
+  }
+  return 0;
+}
+
+let latestReleaseData = null;
+
+async function checkForAppUpdates(isManual = false) {
+  if (isManual) {
+    showToast("Recherche de mise à jour...");
+  }
+  try {
+    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' },
+      cache: 'no-cache'
+    });
+
+    if (!response.ok) {
+      if (isManual) showToast("Aucune mise à jour publiée sur GitHub");
+      return;
+    }
+
+    const release = await response.json();
+    const remoteVersion = release.tag_name || release.name;
+    if (!remoteVersion) return;
+
+    if (compareVersions(remoteVersion, CURRENT_APP_VERSION) > 0) {
+      if (!isManual) {
+        const dismissed = localStorage.getItem(UPDATE_DISMISSED_KEY);
+        if (dismissed) {
+          try {
+            const parsed = JSON.parse(dismissed);
+            if (parsed.version === remoteVersion && (Date.now() - parsed.time < 24 * 3600 * 1000)) {
+              return;
+            }
+          } catch (e) {}
+        }
+      }
+
+      latestReleaseData = release;
+      showUpdateModal(release);
+    } else {
+      if (isManual) {
+        showToast(`Votre application est à jour (v${CURRENT_APP_VERSION})`);
+      }
+    }
+  } catch (err) {
+    console.warn("Échec de la vérification de mise à jour:", err);
+    if (isManual) {
+      showToast("Impossible de vérifier (vérifiez votre connexion internet)");
+    }
+  }
+}
+
+function showUpdateModal(release) {
+  const modal = document.getElementById('updateModal');
+  if (!modal) return;
+
+  const badge = document.getElementById('updateVersionBadge');
+  const notes = document.getElementById('updateNotes');
+  const instructions = document.getElementById('updateInstructions');
+  const downloadBtn = document.getElementById('updateDownloadBtn');
+
+  const remoteTag = release.tag_name || release.name || 'nouvelle version';
+  if (badge) badge.textContent = `Version ${remoteTag} disponible (actuelle : v${CURRENT_APP_VERSION})`;
+
+  if (notes) {
+    notes.textContent = release.body && release.body.trim()
+      ? release.body.trim()
+      : "Améliorations générales et corrections de bugs.";
+  }
+
+  if (instructions) instructions.style.display = 'none';
+  if (downloadBtn) {
+    downloadBtn.disabled = false;
+    downloadBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Télécharger et installer</span>
+    `;
+  }
+
+  modal.classList.add('open');
+}
+
+function closeUpdateModal() {
+  const modal = document.getElementById('updateModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function dismissUpdate() {
+  if (latestReleaseData && latestReleaseData.tag_name) {
+    localStorage.setItem(UPDATE_DISMISSED_KEY, JSON.stringify({
+      version: latestReleaseData.tag_name,
+      time: Date.now()
+    }));
+  }
+  closeUpdateModal();
+}
+
+function downloadAndInstallUpdate() {
+  if (!latestReleaseData) return;
+
+  let apkUrl = null;
+  if (Array.isArray(latestReleaseData.assets)) {
+    const apkAsset = latestReleaseData.assets.find(a => (a.name || '').toLowerCase().endsWith('.apk'));
+    if (apkAsset && apkAsset.browser_download_url) {
+      apkUrl = apkAsset.browser_download_url;
+    }
+  }
+
+  if (!apkUrl) {
+    apkUrl = latestReleaseData.html_url;
+  }
+
+  window.open(apkUrl, '_system');
+
+  const instructions = document.getElementById('updateInstructions');
+  if (instructions) instructions.style.display = 'block';
+
+  const downloadBtn = document.getElementById('updateDownloadBtn');
+  if (downloadBtn) {
+    downloadBtn.innerHTML = `<span>Téléchargement lancé ✔</span>`;
+    downloadBtn.disabled = true;
+  }
 }

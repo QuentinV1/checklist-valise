@@ -90,6 +90,11 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
               <span>Imprimer</span>
             </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" id="btnCheckUpdate" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>Vérifier les mises à jour</span>
+            </button>
           </div>
           <input type="file" id="importFileInput" style="display: none;" accept=".json">
         </div>
@@ -642,6 +647,37 @@
       </div>
 
       <div id="templatesListContainer" class="templates-list"></div>
+    </div>
+  </div>
+
+  <!-- Modal: App Update -->
+  <div class="modal-overlay" id="updateModal" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
+    <div class="modal-sheet modal-sheet-sm">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header" style="align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(30, 77, 59, 0.12); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
+          🚀
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <h2 id="updateTitle" style="margin: 0; font-size: 1.15rem; font-weight: 700;">Mise à jour disponible</h2>
+          <span id="updateVersionBadge" style="font-size: 0.8rem; color: var(--text-muted);">Nouvelle version disponible</span>
+        </div>
+      </div>
+      <div id="updateBody" style="margin: 14px 0 16px;">
+        <div style="font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px;">Nouveautés :</div>
+        <div id="updateNotes" style="white-space: pre-line; background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); font-size: 0.88rem; max-height: 180px; overflow-y: auto; border: 1px solid var(--border-subtle); line-height: 1.5;"></div>
+      </div>
+      <div id="updateInstructions" style="display: none; background: rgba(30, 77, 59, 0.08); border-left: 3px solid #1E4D3B; padding: 10px 12px; border-radius: 6px; font-size: 0.84rem; margin-bottom: 14px; line-height: 1.45;">
+        📥 <strong>Téléchargement en cours !</strong><br>
+        Dès qu'il est terminé, appuyez sur la notification de téléchargement de votre téléphone pour lancer l'installation.
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 8px;">
+        <button type="button" class="btn btn-secondary" id="updateDismissBtn" style="flex: 1;">Plus tard</button>
+        <button type="button" class="btn btn-primary" id="updateDownloadBtn" style="flex: 2;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Mettre à jour</span>
+        </button>
+      </div>
     </div>
   </div>
 
