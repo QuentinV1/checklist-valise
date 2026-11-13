@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Valise — Checklist Voyage</title>
+
+  <!-- PWA & Mobile Web App Meta -->
+  <meta name="theme-color" content="#FBF7F0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Valise">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none'%3E%3Crect width='64' height='64' rx='16' fill='%231E4D3B'/%3E%3Cpath d='M25 19V16a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3' stroke='%23FBF7F0' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M16 25a5 5 0 0 1 5-5h22a5 5 0 0 1 5 5v12H16V25Z' fill='%23FBF7F0'/%3E%3Cpath d='M23 37a9 9 0 0 1 18 0H23Z' fill='%23E86A33'/%3E%3Cpath d='M16 40.5h32V43a5 5 0 0 1-5 5H21a5 5 0 0 1-5-5v-2.5Z' fill='%23FBF7F0'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="#" class="brand" id="brandHomeBtn" aria-label="Accueil Valise">
+          <div class="brand-mark" aria-hidden="true">
+            <svg width="34" height="34" viewBox="0 0 64 64" fill="none">
+              <rect width="64" height="64" rx="16" fill="#1E4D3B"/>
+              <path d="M25 19V16a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3" stroke="#FBF7F0" stroke-width="3.2" stroke-linecap="round"/>
+              <path d="M16 25a5 5 0 0 1 5-5h22a5 5 0 0 1 5 5v12H16V25Z" fill="#FBF7F0"/>
+              <path d="M23 37a9 9 0 0 1 18 0H23Z" fill="#E86A33"/>
+              <path d="M16 40.5h32V43a5 5 0 0 1-5 5H21a5 5 0 0 1-5-5v-2.5Z" fill="#FBF7F0"/>
+            </svg>
+          </div>
+          <span class="brand-name">Valise</span>
+        </a>
+
+        <button class="trip-switcher-pill" id="btnTripSwitcher" style="display: none;" aria-label="Changer de voyage">
+          <span class="trip-switcher-label" id="tripSwitcherLabel">Mes voyages</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="header-right">
+        <button class="icon-btn" id="btnNewTripHeader" title="Nouveau voyage" aria-label="Nouveau voyage">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+
+        <button class="icon-btn" id="btnThemeToggle" title="Changer de thème" aria-label="Changer de thème">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+          </svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+        </button>
+
+        <div class="menu-wrapper">
+          <button class="icon-btn" id="btnMoreMenu" title="Plus d'actions" aria-label="Plus d'actions" aria-expanded="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu" id="moreDropdown" role="menu">
+            <button class="dropdown-item" id="btnTemplates" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+              <span>Modèles &amp; Checklists</span>
+            </button>
+            <button class="dropdown-item" id="btnResetAll" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <span>Tout décocher</span>
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" id="btnExport" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Exporter (JSON)</span>
+            </button>
+            <button class="dropdown-item" id="btnImport" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Importer (JSON)</span>
+            </button>
+            <button class="dropdown-item" id="btnPrint" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Imprimer</span>
+            </button>
+          </div>
+          <input type="file" id="importFileInput" style="display: none;" accept=".json">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Empty State (when no trip is active / 0 trips) -->
+    <section id="emptyStateView" class="empty-state" style="display: none;">
+      <div class="empty-illustration" aria-hidden="true">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="7" width="16" height="13" rx="3"/>
+          <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+          <path d="M9 11v5"/><path d="M15 11v5"/>
+        </svg>
+      </div>
+      <h1 class="empty-title">Aucun voyage en cours</h1>
+      <p class="empty-subtitle">
+        Créez une checklist sur mesure en quelques secondes. Les vêtements, adaptateurs et équipements sont préremplis selon votre destination, saison et activités.
+      </p>
+
+      <div class="empty-primary-actions">
+        <button class="btn btn-primary btn-lg" id="btnEmptyNewTrip">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Créer un voyage</span>
+        </button>
+        <button class="btn btn-ghost btn-lg" id="btnEmptyTemplates">
+          <span>Parcourir les modèles</span>
+        </button>
+      </div>
+
+      <div class="quick-presets">
+        <p class="quick-presets-label">Démarrage rapide</p>
+        <div class="quick-presets-grid">
+          <button class="preset-chip" data-preset="japon">🇯🇵 Japon · Mi-saison</button>
+          <button class="preset-chip" data-preset="ski">⛷️ Ski · Hiver</button>
+          <button class="preset-chip" data-preset="plage">🏖️ Plage · Été</button>
+          <button class="preset-chip" data-preset="city">🏙️ City-trip · Week-end</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active Trip View -->
+    <div id="activeTripView" style="display: none;">
+
+      <!-- Trip Summary Hero Card -->
+      <section class="hero-card">
+        <div class="hero-top">
+          <div class="hero-title-block">
+            <div class="hero-country-flag" id="heroFlag" aria-hidden="true">🇫🇷</div>
+            <div>
+              <h1 class="hero-title" id="heroTitle">Mon Voyage</h1>
+              <p class="hero-meta" id="heroMeta">France · Avion · Mi-saison</p>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <button class="icon-btn icon-btn-subtle" id="btnEditTrip" title="Modifier le voyage" aria-label="Modifier le voyage">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+              </svg>
+            </button>
+            <button class="icon-btn icon-btn-subtle icon-btn-danger" id="btnDeleteTrip" title="Supprimer ce voyage" aria-label="Supprimer ce voyage">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Progress Bar -->
+        <div class="hero-progress-wrap">
+          <div class="hero-progress-stats">
+            <span class="progress-text" id="globalProgressText">0 / 0 préparés</span>
+            <span class="progress-weight" id="globalWeightText">0.00 kg</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="globalProgressFill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- View Mode Switcher: Chronologie (défaut) / Bagages / Catégories -->
+        <div class="view-mode-tabs" role="tablist" aria-label="Mode d'affichage">
+          <button type="button" class="view-mode-btn active" data-view="chrono">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            <span>Chronologie</span>
+          </button>
+          <button type="button" class="view-mode-btn" data-view="baggage">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            <span>Par Bagage</span>
+          </button>
+          <button type="button" class="view-mode-btn" data-view="category">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Par Catégorie</span>
+          </button>
+        </div>
+
+        <!-- Horizontal Baggage Strip (Jauges de poids) -->
+        <div class="baggage-strip" id="baggageGrid" role="tablist" aria-label="Filtrer par bagage">
+          <!-- Généré par app.js -->
+        </div>
+
+        <!-- Chrono Filter Strip (Filtrer par phase chronologique) -->
+        <div class="chrono-filter-strip" id="chronoFilterStrip" role="tablist" aria-label="Filtrer par phase chronologique">
+          <!-- Généré par app.js -->
+        </div>
+
+        <!-- Practical Country Info & Alert -->
+        <div id="countryInfoBar" class="country-strip" style="display: none;"></div>
+        <div id="countryAlertBanner" class="alert-strip" style="display: none;"></div>
+      </section>
+
+      <!-- Search & Segmented Status Filter -->
+      <div class="controls-bar">
+        <div class="search-field">
+          <svg class="search-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Rechercher un article..." aria-label="Rechercher un article">
+          <button class="search-clear" id="btnClearSearch" style="display: none;" aria-label="Effacer la recherche">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="segmented-control" role="tablist" aria-label="Filtrer par statut">
+          <button class="segment active" data-filter="all" role="tab" aria-selected="true">Tous</button>
+          <button class="segment" data-filter="todo" role="tab" aria-selected="false">À faire</button>
+          <button class="segment" data-filter="done" role="tab" aria-selected="false">Prêts</button>
+        </div>
+      </div>
+
+      <!-- Subtle IATA tip (plane only) -->
+      <div class="tip-banner" id="iataCallout" style="display: none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+        </svg>
+        <span><strong>Règle avion :</strong> Batteries externes &amp; objets de valeur en <u>cabine</u> ; couteaux &amp; liquides &gt; 100 ml en <u>soute</u>.</span>
+      </div>
+
+      <!-- Sections Container (Chronologique, Bagages ou Catégories) -->
+      <div id="categorySectionsContainer" class="categories-stack">
+        <!-- Généré par app.js -->
+      </div>
+
+      <!-- Floating Add Item Pill -->
+      <div class="fab-wrap">
+        <button class="fab-pill" id="btnAddItem">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Ajouter un article</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal: Add / Edit Item -->
+  <div class="modal-overlay" id="itemModal" role="dialog" aria-modal="true" aria-labelledby="itemModalTitle">
+    <div class="modal-sheet">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="itemModalTitle">Nouvel article</h2>
+        <button class="icon-btn icon-btn-subtle" onclick="closeItemModal()" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="itemForm" class="modal-form">
+        <input type="hidden" id="editItemId" value="">
+        <div class="form-group">
+          <label class="form-label" for="itemName">Nom de l'article *</label>
+          <input type="text" id="itemName" class="form-control" placeholder="Ex: Câble USB-C, Adaptateur, Gants..." required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="itemPhase">Étape chronologique</label>
+          <select id="itemPhase" class="form-control"></select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="itemCategory">Catégorie</label>
+            <select id="itemCategory" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="itemBaggage">Bagage</label>
+            <select id="itemBaggage" class="form-control"></select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="itemQty">Quantité</label>
+            <input type="number" id="itemQty" class="form-control" value="1" min="1" max="99">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="itemWeight">Poids unitaire (g)</label>
+            <input type="number" id="itemWeight" class="form-control" placeholder="Ex: 150" min="0">
+          </div>
+        </div>
+
+        <div class="form-group" id="itemIataGroup">
+          <label class="form-label" for="itemIata">Règle aérienne (IATA)</label>
+          <select id="itemIata" class="form-control">
+            <option value="">Aucune contrainte</option>
+            <option value="cabin-only">Cabine obligatoire (batterie, passeport)</option>
+            <option value="hold-only">Soute obligatoire (couteau, liquide &gt; 100ml)</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeItemModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Create / Edit Trip -->
+  <div class="modal-overlay" id="tripModal" role="dialog" aria-modal="true" aria-labelledby="tripModalTitle">
+    <div class="modal-sheet modal-sheet-lg">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="tripModalTitle">Nouveau voyage</h2>
+        <button class="icon-btn icon-btn-subtle" onclick="closeTripModal()" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="tripForm" class="modal-form">
+        <input type="hidden" id="editTripId" value="">
+
+        <!-- Nom du voyage -->
+        <div class="form-group">
+          <label class="form-label" for="tripNameInput">Nom du voyage</label>
+          <input type="text" id="tripNameInput" class="form-control" placeholder="Laissez vide pour nommer automatiquement">
+        </div>
+
+        <!-- Destination avec Sélecteur Moderne (Custom Picker) -->
+        <div class="form-group">
+          <label class="form-label">Destination</label>
+          <input type="hidden" id="tripCountrySelect" value="france">
+          <button type="button" class="country-trigger-btn" id="btnCountryTrigger">
+            <span class="country-trigger-flag" id="selectedCountryFlag">🇫🇷</span>
+            <div class="country-trigger-info">
+              <span class="country-trigger-name" id="selectedCountryName">France (Métropole / Corse)</span>
+              <span class="country-trigger-meta" id="selectedCountryMeta">Europe · Prise Type E · Euro (€)</span>
+            </div>
+            <svg class="trigger-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+
+        <!-- Section Personnes & Animaux (avec distinction Homme / Femme) -->
+        <div class="form-group">
+          <label class="form-label">Personnes &amp; Animaux <span class="label-hint">(ajuste automatiquement les vêtements &amp; soins adaptés)</span></label>
+          
+          <!-- Adultes -->
+          <div class="party-subgroup">
+            <span class="party-subgroup-title">Adultes (dès 18 ans)</span>
+            <div class="party-builder-grid">
+              <div class="party-card">
+                <div class="party-card-header">
+                  <span class="party-role-name">Hommes</span>
+                  <span class="party-role-hint">Rasoir, caleçons, etc.</span>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" onclick="adjustParty('adultsMen', -1)" aria-label="Moins d'hommes">−</button>
+                  <span class="stepper-val" id="partyAdultsMenCount">1</span>
+                  <button type="button" class="stepper-btn" onclick="adjustParty('adultsMen', 1)" aria-label="Plus d'hommes">+</button>
+                </div>
+              </div>
+
+              <div class="party-card">
+                <div class="party-card-header">
+                  <span class="party-role-name">Femmes</span>
+                  <span class="party-role-hint">Pilule, collants, soins...</span>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" onclick="adjustParty('adultsWomen', -1)" aria-label="Moins de femmes">−</button>
+                  <span class="stepper-val" id="partyAdultsWomenCount">0</span>
+                  <button type="button" class="stepper-btn" onclick="adjustParty('adultsWomen', 1)" aria-label="Plus de femmes">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Adolescents -->
+          <div class="party-subgroup">
+            <span class="party-subgroup-title">Adolescents (13 à 17 ans)</span>
+            <div class="party-builder-grid">
+              <div class="party-card">
+                <div class="party-card-header">
+                  <span class="party-role-name">Ados Garçons</span>
+                  <span class="party-role-hint">Boxers, tech, rasage</span>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" onclick="adjustParty('teensBoys', -1)" aria-label="Moins d'ados garçons">−</button>
+                  <span class="stepper-val" id="partyTeensBoysCount">0</span>
+                  <button type="button" class="stepper-btn" onclick="adjustParty('teensBoys', 1)" aria-label="Plus d'ados garçons">+</button>
+                </div>
+              </div>
+
+              <div class="party-card">
+                <div class="party-card-header">
+                  <span class="party-role-name">Ados Filles</span>
+                  <span class="party-role-hint">Protections, soins, collants</span>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" onclick="adjustParty('teensGirls', -1)" aria-label="Moins d'ados filles">−</button>
+                  <span class="stepper-val" id="partyTeensGirlsCount">0</span>
+                  <button type="button" class="stepper-btn" onclick="adjustParty('teensGirls', 1)" aria-label="Plus d'ados filles">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enfants & Bébés -->
+          <div class="party-subgroup">
+            <span class="party-subgroup-title">Enfants &amp; Bébés</span>
+            <div class="party-builder-grid grid-3">
+              <div class="party-card">
+                <div class="party-card-header">
+                  <span class="party-role-name">Garçons (2-12 ans)</span>
+                  <span class="party-role-hint">Tenues, jeux nomades</span>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" onclick="adjustParty('childrenBoys', -1)" aria-label="Moins de garçons">−</button>
+                  <span class="stepper-val" id="partyChildrenBoysCount">0</span>
+                  <button type="button" class="stepper-btn" onclick="adjustParty('childrenBoys', 1)" aria-label="Plus de garçons">+</button>
+                </div>
+              </div>
+
+              <div class="party-card">
+                <div class="party-card-header">
+                  <span class="party-role-name">Filles (2-12 ans)</span>
+                  <span class="party-role-hint">Tenues, barrettes</span>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" onclick="adjustParty('childrenGirls', -1)" aria-label="Moins de filles">−</button>
+                  <span class="stepper-val" id="partyChildrenGirlsCount">0</span>
+                  <button type="button" class="stepper-btn" onclick="adjustParty('childrenGirls', 1)" aria-label="Plus de filles">+</button>
+                </div>
+              </div>
+
+              <div class="party-card">
+                <div class="party-card-header">
+                  <span class="party-role-name">Bébés (&lt; 2 ans)</span>
+                  <span class="party-role-hint">Couches, poussette</span>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" onclick="adjustParty('babies', -1)" aria-label="Moins de bébés">−</button>
+                  <span class="stepper-val" id="partyBabiesCount">0</span>
+                  <button type="button" class="stepper-btn" onclick="adjustParty('babies', 1)" aria-label="Plus de bébés">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Animal de compagnie -->
+          <div class="pet-accordion-box">
+            <div class="pet-accordion-top">
+              <div class="pet-accordion-label">
+                <span class="pet-title">Animal de compagnie</span>
+                <span class="pet-sub">Croquettes, laisse, caisse de transport ou garde</span>
+              </div>
+              <label class="switch-toggle" aria-label="Activer les affaires d'animal">
+                <input type="checkbox" id="partyPetToggle" onchange="onPetToggleChange(this.checked)">
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+
+            <div class="pet-accordion-body" id="petAccordionBody" style="display: none;">
+              <div class="party-grid pet-party-grid">
+                <div class="party-card">
+                  <div class="party-card-header">
+                    <span class="party-role-name">Chiens</span>
+                    <span class="party-role-hint">Laisse, sacs, harnais</span>
+                  </div>
+                  <div class="stepper">
+                    <button type="button" class="stepper-btn" onclick="adjustPet('dogs', -1)" aria-label="Moins de chiens">−</button>
+                    <span class="stepper-val" id="partyPetDogsCount">0</span>
+                    <button type="button" class="stepper-btn" onclick="adjustPet('dogs', 1)" aria-label="Plus de chiens">+</button>
+                  </div>
+                </div>
+
+                <div class="party-card">
+                  <div class="party-card-header">
+                    <span class="party-role-name">Chats</span>
+                    <span class="party-role-hint">Litière, caisse, plaid</span>
+                  </div>
+                  <div class="stepper">
+                    <button type="button" class="stepper-btn" onclick="adjustPet('cats', -1)" aria-label="Moins de chats">−</button>
+                    <span class="stepper-val" id="partyPetCatsCount">0</span>
+                    <button type="button" class="stepper-btn" onclick="adjustPet('cats', 1)" aria-label="Plus de chats">+</button>
+                  </div>
+                </div>
+
+                <div class="party-card">
+                  <div class="party-card-header">
+                    <span class="party-role-name">Autres</span>
+                    <span class="party-role-hint">NAC, lapin, oiseau…</span>
+                  </div>
+                  <div class="stepper">
+                    <button type="button" class="stepper-btn" onclick="adjustPet('others', -1)" aria-label="Moins d'autres animaux">−</button>
+                    <span class="stepper-val" id="partyPetOthersCount">0</span>
+                    <button type="button" class="stepper-btn" onclick="adjustPet('others', 1)" aria-label="Plus d'autres animaux">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="pet-choice-row" style="margin-top: 12px;">
+                <span class="pet-choice-label">Modalité du séjour :</span>
+                <div class="pill-group" id="petTravelPills">
+                  <button type="button" class="pill-btn active" data-pet-travel="travel">Voyage avec nous</button>
+                  <button type="button" class="pill-btn" data-pet-travel="stay">Garde d'animaux (pet-sitter)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode de transport (Cartes visuelles modernes) -->
+        <div class="form-group">
+          <label class="form-label">Mode de transport</label>
+          <input type="hidden" id="tripTransportSelect" value="avion">
+          <div class="visual-picker-grid grid-4" id="transportPickerGrid">
+            <!-- Rendu par app.js -->
+          </div>
+        </div>
+
+        <!-- Saison & Climat (Cartes visuelles modernes) -->
+        <div class="form-group">
+          <label class="form-label">Saison &amp; Climat</label>
+          <input type="hidden" id="tripSeasonSelect" value="misaison">
+          <div class="visual-picker-grid grid-4" id="seasonPickerGrid">
+            <!-- Rendu par app.js -->
+          </div>
+        </div>
+
+        <!-- Durée & Style de séjour (Cartes visuelles modernes) -->
+        <div class="form-group">
+          <label class="form-label">Durée &amp; Style de séjour</label>
+          <input type="hidden" id="tripTypeSelect" value="weekend">
+          <div class="visual-picker-grid grid-4" id="tripTypePickerGrid">
+            <!-- Rendu par app.js -->
+          </div>
+          <div class="days-duration-bar">
+            <div class="days-duration-info">
+              <span class="days-duration-title">Nombre de jours</span>
+              <span class="days-duration-hint">Adapte les quantités (tenues, couches, croquettes…)</span>
+            </div>
+            <div class="stepper">
+              <button type="button" class="stepper-btn" onclick="adjustTripDays(-1)" aria-label="Moins de jours">−</button>
+              <input type="number" id="tripDaysInput" class="days-input tabular-nums" min="1" max="365" value="3" aria-label="Nombre de jours du séjour" oninput="onTripDaysInput(this.value)">
+              <span class="days-unit">j</span>
+              <button type="button" class="stepper-btn" onclick="adjustTripDays(1)" aria-label="Plus de jours">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activités prévues -->
+        <div class="form-group">
+          <label class="form-label">Activités prévues <span class="label-hint">(préremplit le matériel adéquat)</span></label>
+          <div class="activity-chips" id="activityChipsContainer">
+            <!-- Généré par app.js -->
+          </div>
+        </div>
+
+        <div class="prefill-preview" id="prefillPreview">
+          <!-- Aperçu dynamique des éléments préremplis -->
+        </div>
+
+        <div class="form-group" id="regenerateCheckGroup" style="display: none;">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="tripRegenerateItems">
+            <span>Régénérer la checklist selon ces paramètres (remplace la liste actuelle)</span>
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeTripModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary" id="tripSubmitBtn">Créer la checklist</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Custom Destination Picker (Recherche rapide + Filtre Régions) -->
+  <div class="modal-overlay" id="countryPickerModal" role="dialog" aria-modal="true" aria-labelledby="countryPickerTitle">
+    <div class="modal-sheet modal-sheet-lg">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="countryPickerTitle">Choisir une destination</h2>
+        <button class="icon-btn icon-btn-subtle" onclick="closeCountryPickerModal()" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="country-search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="countrySearchInput" placeholder="Rechercher un pays, une devise ou un type de prise..." aria-label="Rechercher une destination">
+      </div>
+
+      <div class="region-tabs" id="regionTabsContainer">
+        <!-- Rendu dynamique par app.js (Toutes, Europe, Asie, etc.) -->
+      </div>
+
+      <div class="country-picker-list" id="countryPickerList">
+        <!-- Rendu dynamique des 32 pays -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Trip Switcher -->
+  <div class="modal-overlay" id="tripsModal" role="dialog" aria-modal="true" aria-labelledby="tripsModalTitle">
+    <div class="modal-sheet">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="tripsModalTitle">Mes voyages</h2>
+        <button class="icon-btn icon-btn-subtle" onclick="closeTripsModal()" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="tripsListContainer" class="trips-list"></div>
+      <div class="modal-footer" style="margin-top: 16px;">
+        <button type="button" class="btn btn-primary" id="btnNewTripFromSwitcher" style="width: 100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Nouveau voyage</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Templates -->
+  <div class="modal-overlay" id="templatesModal" role="dialog" aria-modal="true" aria-labelledby="templatesModalTitle">
+    <div class="modal-sheet">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="templatesModalTitle">Modèles &amp; Checklists</h2>
+        <button class="icon-btn icon-btn-subtle" onclick="closeTemplatesModal()" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="template-actions-top">
+        <button class="btn btn-primary btn-sm" id="btnSaveAsTemplate" style="flex: 1;">
+          Sauvegarder ce voyage
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnCreateBlankTrip" style="flex: 1;">
+          Checklist vierge
+        </button>
+      </div>
+
+      <div id="templatesListContainer" class="templates-list"></div>
+    </div>
+  </div>
+
+  <!-- Modal: In-App Confirmation -->
+  <div class="modal-overlay" id="confirmModal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-sheet modal-sheet-sm">
+      <div class="modal-header">
+        <h2 id="confirmTitle">Confirmation</h2>
+      </div>
+      <p id="confirmMessage" class="confirm-message"></p>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="confirmCancelBtn">Annuler</button>
+        <button type="button" class="btn btn-danger" id="confirmOkBtn">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
