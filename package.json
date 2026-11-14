@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Checklist Valise & Bagages",
   "scripts": {
-    "sync:web": "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path www | Out-Null; Copy-Item index.html,app.js,data.js,style.css,manifest.webmanifest,sw.js -Destination www -Force\"",
+    "sync:web": "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path www | Out-Null; Copy-Item index.html,app.js,data.js,style.css,manifest.webmanifest,sw.js,icon-192.png,icon-512.png -Destination www -Force\"",
     "cap:sync": "npm.cmd run sync:web && npx.cmd cap sync android"
   },
   "dependencies": {

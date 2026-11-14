@@ -1,11 +1,13 @@
-const CACHE_NAME = 'valise-app-v3';
+const CACHE_NAME = 'valise-app-v4';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './data.js',
   './app.js',
-  './manifest.webmanifest'
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
