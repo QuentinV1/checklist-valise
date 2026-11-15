@@ -38,9 +38,10 @@
             </svg>
           </div>
           <span class="brand-name">Valise</span>
+          <span class="app-version-badge" id="appVersionBadge">v1.1.0</span>
         </a>
 
-        <button class="trip-switcher-pill" id="btnTripSwitcher" style="display: none;" aria-label="Changer de voyage">
+        <button type="button" class="trip-switcher-pill" id="btnTripSwitcher" style="display: none;" aria-label="Changer de voyage">
           <span class="trip-switcher-label" id="tripSwitcherLabel">Mes voyages</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
@@ -49,13 +50,13 @@
       </div>
 
       <div class="header-right">
-        <button class="icon-btn" id="btnNewTripHeader" title="Nouveau voyage" aria-label="Nouveau voyage">
+        <button type="button" class="icon-btn" id="btnNewTripHeader" title="Nouveau voyage" aria-label="Nouveau voyage">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
         </button>
 
-        <button class="icon-btn" id="btnThemeToggle" title="Changer de thème" aria-label="Changer de thème">
+        <button type="button" class="icon-btn" id="btnThemeToggle" title="Changer de thème" aria-label="Changer de thème">
           <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
           </svg>
@@ -65,40 +66,49 @@
         </button>
 
         <div class="menu-wrapper">
-          <button class="icon-btn" id="btnMoreMenu" title="Plus d'actions" aria-label="Plus d'actions" aria-expanded="false">
+          <button type="button" class="icon-btn" id="btnMoreMenu" title="Plus d'actions" aria-label="Plus d'actions" aria-expanded="false">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
             </svg>
           </button>
           <div class="dropdown-menu" id="moreDropdown" role="menu">
-            <button class="dropdown-item" id="btnTemplates" role="menuitem">
+            <button type="button" class="dropdown-item" id="btnTemplates" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
               <span>Modèles &amp; Checklists</span>
             </button>
-            <button class="dropdown-item" id="btnResetAll" role="menuitem">
+            <button type="button" class="dropdown-item" id="btnPrepareReturn" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+              <span>Préparer le retour</span>
+            </button>
+            <button type="button" class="dropdown-item" id="btnResetAll" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               <span>Tout décocher</span>
             </button>
             <div class="dropdown-divider"></div>
-            <button class="dropdown-item" id="btnExport" role="menuitem">
+            <button type="button" class="dropdown-item" id="btnShareText" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span>Partager en texte</span>
+            </button>
+            <button type="button" class="dropdown-item" id="btnExport" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span>Exporter (JSON)</span>
             </button>
-            <button class="dropdown-item" id="btnImport" role="menuitem">
+            <button type="button" class="dropdown-item" id="btnImport" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <span>Importer (JSON)</span>
             </button>
-            <button class="dropdown-item" id="btnPrint" role="menuitem">
+            <button type="button" class="dropdown-item" id="btnPrint" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
               <span>Imprimer</span>
             </button>
             <div class="dropdown-divider"></div>
-            <button class="dropdown-item" id="btnCheckUpdate" role="menuitem">
+            <button type="button" class="dropdown-item" id="btnCheckUpdate" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
               <span>Vérifier les mises à jour</span>
+              <span class="dropdown-version-tag" id="menuVersionBadge">v1.1.0</span>
             </button>
           </div>
-          <input type="file" id="importFileInput" style="display: none;" accept=".json">
+          <input type="file" id="importFileInput" style="display: none;" accept=".json,application/json">
         </div>
       </div>
     </div>
@@ -122,11 +132,11 @@
       </p>
 
       <div class="empty-primary-actions">
-        <button class="btn btn-primary btn-lg" id="btnEmptyNewTrip">
+        <button type="button" class="btn btn-primary btn-lg" id="btnEmptyNewTrip">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span>Créer un voyage</span>
         </button>
-        <button class="btn btn-ghost btn-lg" id="btnEmptyTemplates">
+        <button type="button" class="btn btn-ghost btn-lg" id="btnEmptyTemplates">
           <span>Parcourir les modèles</span>
         </button>
       </div>
@@ -134,10 +144,11 @@
       <div class="quick-presets">
         <p class="quick-presets-label">Démarrage rapide</p>
         <div class="quick-presets-grid">
-          <button class="preset-chip" data-preset="japon">🇯🇵 Japon · Mi-saison</button>
-          <button class="preset-chip" data-preset="ski">⛷️ Ski · Hiver</button>
-          <button class="preset-chip" data-preset="plage">🏖️ Plage · Été</button>
-          <button class="preset-chip" data-preset="city">🏙️ City-trip · Week-end</button>
+          <button type="button" class="preset-chip" data-preset="japon">🇯🇵 Japon · Mi-saison</button>
+          <button type="button" class="preset-chip" data-preset="ski">⛷️ Ski · Hiver</button>
+          <button type="button" class="preset-chip" data-preset="plage">🏖️ Plage · Été</button>
+          <button type="button" class="preset-chip" data-preset="city">🏙️ City-trip · Week-end</button>
+          <button type="button" class="preset-chip" data-preset="famille">👨‍👩‍👧‍👦 Famille &amp; Chien · Été</button>
         </div>
       </div>
     </section>
@@ -150,18 +161,21 @@
         <div class="hero-top">
           <div class="hero-title-block">
             <div class="hero-country-flag" id="heroFlag" aria-hidden="true">🇫🇷</div>
-            <div>
-              <h1 class="hero-title" id="heroTitle">Mon Voyage</h1>
+            <div class="hero-title-info">
+              <div class="hero-title-row">
+                <h1 class="hero-title" id="heroTitle">Mon Voyage</h1>
+                <span class="hero-countdown-badge" id="heroCountdown" style="display: none;"></span>
+              </div>
               <p class="hero-meta" id="heroMeta">France · Avion · Mi-saison</p>
             </div>
           </div>
           <div class="hero-actions">
-            <button class="icon-btn icon-btn-subtle" id="btnEditTrip" title="Modifier le voyage" aria-label="Modifier le voyage">
+            <button type="button" class="icon-btn icon-btn-subtle" id="btnEditTrip" title="Modifier le voyage" aria-label="Modifier le voyage">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
               </svg>
             </button>
-            <button class="icon-btn icon-btn-subtle icon-btn-danger" id="btnDeleteTrip" title="Supprimer ce voyage" aria-label="Supprimer ce voyage">
+            <button type="button" class="icon-btn icon-btn-subtle icon-btn-danger" id="btnDeleteTrip" title="Supprimer ce voyage" aria-label="Supprimer ce voyage">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
               </svg>
@@ -196,7 +210,7 @@
           </button>
         </div>
 
-        <!-- Horizontal Baggage Strip (Jauges de poids) -->
+        <!-- Horizontal Baggage Strip (Jauges de poids & marges) -->
         <div class="baggage-strip" id="baggageGrid" role="tablist" aria-label="Filtrer par bagage">
           <!-- Généré par app.js -->
         </div>
@@ -211,31 +225,40 @@
         <div id="countryAlertBanner" class="alert-strip" style="display: none;"></div>
       </section>
 
-      <!-- Search & Segmented Status Filter -->
+      <!-- Search, Segmented Status Filter & Collapse All -->
       <div class="controls-bar">
         <div class="search-field">
           <svg class="search-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
           </svg>
-          <input type="text" id="searchInput" class="search-input" placeholder="Rechercher un article..." aria-label="Rechercher un article">
-          <button class="search-clear" id="btnClearSearch" style="display: none;" aria-label="Effacer la recherche">
+          <input type="text" id="searchInput" class="search-input" placeholder="Rechercher un article ou mémo..." aria-label="Rechercher un article">
+          <button type="button" class="search-clear" id="btnClearSearch" style="display: none;" aria-label="Effacer la recherche">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
 
-        <div class="segmented-control" role="tablist" aria-label="Filtrer par statut">
-          <button class="segment active" data-filter="all" role="tab" aria-selected="true">Tous</button>
-          <button class="segment" data-filter="todo" role="tab" aria-selected="false">À faire</button>
-          <button class="segment" data-filter="done" role="tab" aria-selected="false">Prêts</button>
+        <div class="controls-right-group">
+          <div class="segmented-control" role="tablist" aria-label="Filtrer par statut">
+            <button type="button" class="segment active" data-filter="all" role="tab" aria-selected="true">Tous</button>
+            <button type="button" class="segment" data-filter="todo" role="tab" aria-selected="false">À faire</button>
+            <button type="button" class="segment" data-filter="done" role="tab" aria-selected="false">Prêts</button>
+          </div>
+
+          <button type="button" class="icon-btn" id="btnToggleAllSections" title="Tout replier / déplier" aria-label="Tout replier ou déplier">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="7 15 12 20 17 15"/><polyline points="7 9 12 4 17 9"/>
+            </svg>
+          </button>
         </div>
       </div>
 
-      <!-- Subtle IATA tip (plane only) -->
+      <!-- Subtle IATA tip (plane only) + conflict alert -->
       <div class="tip-banner" id="iataCallout" style="display: none;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
         </svg>
-        <span><strong>Règle avion :</strong> Batteries externes &amp; objets de valeur en <u>cabine</u> ; couteaux &amp; liquides &gt; 100 ml en <u>soute</u>.</span>
+        <span id="iataCalloutText" class="tip-banner-text"><strong>Règle avion :</strong> Batteries externes &amp; objets de valeur en <u>cabine</u> ; couteaux &amp; liquides &gt; 100 ml en <u>soute</u>.</span>
+        <button type="button" class="tip-banner-action" id="btnFixAllIata" style="display: none;">Tout corriger</button>
       </div>
 
       <!-- Sections Container (Chronologique, Bagages ou Catégories) -->
@@ -245,7 +268,7 @@
 
       <!-- Floating Add Item Pill -->
       <div class="fab-wrap">
-        <button class="fab-pill" id="btnAddItem">
+        <button type="button" class="fab-pill" id="btnAddItem">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span>Ajouter un article</span>
         </button>
@@ -260,7 +283,7 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <div class="modal-header">
         <h2 id="itemModalTitle">Nouvel article</h2>
-        <button class="icon-btn icon-btn-subtle" onclick="closeItemModal()" aria-label="Fermer">
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="itemModal" aria-label="Fermer">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -269,6 +292,11 @@
         <div class="form-group">
           <label class="form-label" for="itemName">Nom de l'article *</label>
           <input type="text" id="itemName" class="form-control" placeholder="Ex: Câble USB-C, Adaptateur, Gants..." required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="itemNote">Note / Mémo <span class="label-hint">(optionnel)</span></label>
+          <input type="text" id="itemNote" class="form-control" maxlength="160" placeholder="Ex: À acheter avant départ, Poche avant, Prêté par Paul...">
         </div>
 
         <div class="form-group">
@@ -290,11 +318,11 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="itemQty">Quantité</label>
-            <input type="number" id="itemQty" class="form-control" value="1" min="1" max="99">
+            <input type="number" id="itemQty" class="form-control" value="1" min="1" max="999">
           </div>
           <div class="form-group">
             <label class="form-label" for="itemWeight">Poids unitaire (g)</label>
-            <input type="number" id="itemWeight" class="form-control" placeholder="Ex: 150" min="0">
+            <input type="number" id="itemWeight" class="form-control" placeholder="Ex: 150" min="0" max="100000">
           </div>
         </div>
 
@@ -308,7 +336,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeItemModal()">Annuler</button>
+          <button type="button" class="btn btn-secondary" data-close-modal="itemModal">Annuler</button>
           <button type="submit" class="btn btn-primary">Enregistrer</button>
         </div>
       </form>
@@ -321,17 +349,23 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <div class="modal-header">
         <h2 id="tripModalTitle">Nouveau voyage</h2>
-        <button class="icon-btn icon-btn-subtle" onclick="closeTripModal()" aria-label="Fermer">
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="tripModal" aria-label="Fermer">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <form id="tripForm" class="modal-form">
         <input type="hidden" id="editTripId" value="">
 
-        <!-- Nom du voyage -->
-        <div class="form-group">
-          <label class="form-label" for="tripNameInput">Nom du voyage</label>
-          <input type="text" id="tripNameInput" class="form-control" placeholder="Laissez vide pour nommer automatiquement">
+        <!-- Nom du voyage & Date de départ -->
+        <div class="form-row form-row-trip-top">
+          <div class="form-group">
+            <label class="form-label" for="tripNameInput">Nom du voyage</label>
+            <input type="text" id="tripNameInput" class="form-control" placeholder="Auto si laissé vide">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tripDateInput">Date de départ <span class="label-hint">(optionnel)</span></label>
+            <input type="date" id="tripDateInput" class="form-control">
+          </div>
         </div>
 
         <!-- Destination avec Sélecteur Moderne (Custom Picker) -->
@@ -348,11 +382,11 @@
           </button>
         </div>
 
-        <!-- Section Personnes & Animaux (avec distinction Homme / Femme) -->
+        <!-- Section Personnes & Animaux -->
         <div class="form-group">
-          <label class="form-label">Personnes &amp; Animaux <span class="label-hint">(ajuste automatiquement les vêtements &amp; soins adaptés)</span></label>
-          
-          <!-- Adultes -->
+          <label class="form-label">Personnes &amp; Animaux <span class="label-hint">(ajuste vêtements &amp; soins)</span></label>
+
+          <!-- Adultes (toujours visibles) -->
           <div class="party-subgroup">
             <span class="party-subgroup-title">Adultes (dès 18 ans)</span>
             <div class="party-builder-grid">
@@ -362,9 +396,9 @@
                   <span class="party-role-hint">Rasoir, caleçons, etc.</span>
                 </div>
                 <div class="stepper">
-                  <button type="button" class="stepper-btn" onclick="adjustParty('adultsMen', -1)" aria-label="Moins d'hommes">−</button>
+                  <button type="button" class="stepper-btn" data-party-role="adultsMen" data-delta="-1" aria-label="Moins d'hommes">−</button>
                   <span class="stepper-val" id="partyAdultsMenCount">1</span>
-                  <button type="button" class="stepper-btn" onclick="adjustParty('adultsMen', 1)" aria-label="Plus d'hommes">+</button>
+                  <button type="button" class="stepper-btn" data-party-role="adultsMen" data-delta="1" aria-label="Plus d'hommes">+</button>
                 </div>
               </div>
 
@@ -374,81 +408,95 @@
                   <span class="party-role-hint">Pilule, collants, soins...</span>
                 </div>
                 <div class="stepper">
-                  <button type="button" class="stepper-btn" onclick="adjustParty('adultsWomen', -1)" aria-label="Moins de femmes">−</button>
+                  <button type="button" class="stepper-btn" data-party-role="adultsWomen" data-delta="-1" aria-label="Moins de femmes">−</button>
                   <span class="stepper-val" id="partyAdultsWomenCount">0</span>
-                  <button type="button" class="stepper-btn" onclick="adjustParty('adultsWomen', 1)" aria-label="Plus de femmes">+</button>
+                  <button type="button" class="stepper-btn" data-party-role="adultsWomen" data-delta="1" aria-label="Plus de femmes">+</button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Adolescents -->
-          <div class="party-subgroup">
-            <span class="party-subgroup-title">Adolescents (13 à 17 ans)</span>
-            <div class="party-builder-grid">
-              <div class="party-card">
-                <div class="party-card-header">
-                  <span class="party-role-name">Ados Garçons</span>
-                  <span class="party-role-hint">Boxers, tech, rasage</span>
-                </div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" onclick="adjustParty('teensBoys', -1)" aria-label="Moins d'ados garçons">−</button>
-                  <span class="stepper-val" id="partyTeensBoysCount">0</span>
-                  <button type="button" class="stepper-btn" onclick="adjustParty('teensBoys', 1)" aria-label="Plus d'ados garçons">+</button>
+          <!-- Accordéon Enfants, Ados & Bébés -->
+          <div class="accordion-box" id="childrenAccordionBox">
+            <button type="button" class="accordion-trigger" id="btnToggleChildrenAccordion" aria-expanded="false" aria-controls="childrenAccordionBody">
+              <div class="accordion-trigger-text">
+                <span class="pet-title">Enfants, Ados &amp; Bébés</span>
+                <span class="pet-sub">Ados (13-17), enfants (2-12) et bébés (&lt; 2 ans)</span>
+              </div>
+              <div class="accordion-trigger-right">
+                <span class="accordion-summary-badge" id="childrenSummaryBadge">Aucun</span>
+                <svg class="collapse-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </button>
+
+            <div class="accordion-body" id="childrenAccordionBody" style="display: none;">
+              <div class="party-subgroup">
+                <span class="party-subgroup-title">Adolescents (13 à 17 ans)</span>
+                <div class="party-builder-grid">
+                  <div class="party-card">
+                    <div class="party-card-header">
+                      <span class="party-role-name">Ados Garçons</span>
+                      <span class="party-role-hint">Boxers, tech, rasage</span>
+                    </div>
+                    <div class="stepper">
+                      <button type="button" class="stepper-btn" data-party-role="teensBoys" data-delta="-1" aria-label="Moins d'ados garçons">−</button>
+                      <span class="stepper-val" id="partyTeensBoysCount">0</span>
+                      <button type="button" class="stepper-btn" data-party-role="teensBoys" data-delta="1" aria-label="Plus d'ados garçons">+</button>
+                    </div>
+                  </div>
+
+                  <div class="party-card">
+                    <div class="party-card-header">
+                      <span class="party-role-name">Ados Filles</span>
+                      <span class="party-role-hint">Protections, soins, collants</span>
+                    </div>
+                    <div class="stepper">
+                      <button type="button" class="stepper-btn" data-party-role="teensGirls" data-delta="-1" aria-label="Moins d'ados filles">−</button>
+                      <span class="stepper-val" id="partyTeensGirlsCount">0</span>
+                      <button type="button" class="stepper-btn" data-party-role="teensGirls" data-delta="1" aria-label="Plus d'ados filles">+</button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="party-card">
-                <div class="party-card-header">
-                  <span class="party-role-name">Ados Filles</span>
-                  <span class="party-role-hint">Protections, soins, collants</span>
-                </div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" onclick="adjustParty('teensGirls', -1)" aria-label="Moins d'ados filles">−</button>
-                  <span class="stepper-val" id="partyTeensGirlsCount">0</span>
-                  <button type="button" class="stepper-btn" onclick="adjustParty('teensGirls', 1)" aria-label="Plus d'ados filles">+</button>
-                </div>
-              </div>
-            </div>
-          </div>
+              <div class="party-subgroup" style="margin-bottom: 0;">
+                <span class="party-subgroup-title">Enfants &amp; Bébés</span>
+                <div class="party-builder-grid grid-3">
+                  <div class="party-card">
+                    <div class="party-card-header">
+                      <span class="party-role-name">Garçons (2-12)</span>
+                      <span class="party-role-hint">Tenues, jeux</span>
+                    </div>
+                    <div class="stepper">
+                      <button type="button" class="stepper-btn" data-party-role="childrenBoys" data-delta="-1" aria-label="Moins de garçons">−</button>
+                      <span class="stepper-val" id="partyChildrenBoysCount">0</span>
+                      <button type="button" class="stepper-btn" data-party-role="childrenBoys" data-delta="1" aria-label="Plus de garçons">+</button>
+                    </div>
+                  </div>
 
-          <!-- Enfants & Bébés -->
-          <div class="party-subgroup">
-            <span class="party-subgroup-title">Enfants &amp; Bébés</span>
-            <div class="party-builder-grid grid-3">
-              <div class="party-card">
-                <div class="party-card-header">
-                  <span class="party-role-name">Garçons (2-12 ans)</span>
-                  <span class="party-role-hint">Tenues, jeux nomades</span>
-                </div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" onclick="adjustParty('childrenBoys', -1)" aria-label="Moins de garçons">−</button>
-                  <span class="stepper-val" id="partyChildrenBoysCount">0</span>
-                  <button type="button" class="stepper-btn" onclick="adjustParty('childrenBoys', 1)" aria-label="Plus de garçons">+</button>
-                </div>
-              </div>
+                  <div class="party-card">
+                    <div class="party-card-header">
+                      <span class="party-role-name">Filles (2-12)</span>
+                      <span class="party-role-hint">Tenues, coiffure</span>
+                    </div>
+                    <div class="stepper">
+                      <button type="button" class="stepper-btn" data-party-role="childrenGirls" data-delta="-1" aria-label="Moins de filles">−</button>
+                      <span class="stepper-val" id="partyChildrenGirlsCount">0</span>
+                      <button type="button" class="stepper-btn" data-party-role="childrenGirls" data-delta="1" aria-label="Plus de filles">+</button>
+                    </div>
+                  </div>
 
-              <div class="party-card">
-                <div class="party-card-header">
-                  <span class="party-role-name">Filles (2-12 ans)</span>
-                  <span class="party-role-hint">Tenues, barrettes</span>
-                </div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" onclick="adjustParty('childrenGirls', -1)" aria-label="Moins de filles">−</button>
-                  <span class="stepper-val" id="partyChildrenGirlsCount">0</span>
-                  <button type="button" class="stepper-btn" onclick="adjustParty('childrenGirls', 1)" aria-label="Plus de filles">+</button>
-                </div>
-              </div>
-
-              <div class="party-card">
-                <div class="party-card-header">
-                  <span class="party-role-name">Bébés (&lt; 2 ans)</span>
-                  <span class="party-role-hint">Couches, poussette</span>
-                </div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" onclick="adjustParty('babies', -1)" aria-label="Moins de bébés">−</button>
-                  <span class="stepper-val" id="partyBabiesCount">0</span>
-                  <button type="button" class="stepper-btn" onclick="adjustParty('babies', 1)" aria-label="Plus de bébés">+</button>
+                  <div class="party-card">
+                    <div class="party-card-header">
+                      <span class="party-role-name">Bébés (&lt; 2 ans)</span>
+                      <span class="party-role-hint">Couches, poussette</span>
+                    </div>
+                    <div class="stepper">
+                      <button type="button" class="stepper-btn" data-party-role="babies" data-delta="-1" aria-label="Moins de bébés">−</button>
+                      <span class="stepper-val" id="partyBabiesCount">0</span>
+                      <button type="button" class="stepper-btn" data-party-role="babies" data-delta="1" aria-label="Plus de bébés">+</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -462,22 +510,22 @@
                 <span class="pet-sub">Croquettes, laisse, caisse de transport ou garde</span>
               </div>
               <label class="switch-toggle" aria-label="Activer les affaires d'animal">
-                <input type="checkbox" id="partyPetToggle" onchange="onPetToggleChange(this.checked)">
+                <input type="checkbox" id="partyPetToggle">
                 <span class="switch-slider"></span>
               </label>
             </div>
 
             <div class="pet-accordion-body" id="petAccordionBody" style="display: none;">
-              <div class="party-grid pet-party-grid">
+              <div class="party-builder-grid grid-3 pet-party-grid">
                 <div class="party-card">
                   <div class="party-card-header">
                     <span class="party-role-name">Chiens</span>
                     <span class="party-role-hint">Laisse, sacs, harnais</span>
                   </div>
                   <div class="stepper">
-                    <button type="button" class="stepper-btn" onclick="adjustPet('dogs', -1)" aria-label="Moins de chiens">−</button>
+                    <button type="button" class="stepper-btn" data-pet-kind="dogs" data-delta="-1" aria-label="Moins de chiens">−</button>
                     <span class="stepper-val" id="partyPetDogsCount">0</span>
-                    <button type="button" class="stepper-btn" onclick="adjustPet('dogs', 1)" aria-label="Plus de chiens">+</button>
+                    <button type="button" class="stepper-btn" data-pet-kind="dogs" data-delta="1" aria-label="Plus de chiens">+</button>
                   </div>
                 </div>
 
@@ -487,9 +535,9 @@
                     <span class="party-role-hint">Litière, caisse, plaid</span>
                   </div>
                   <div class="stepper">
-                    <button type="button" class="stepper-btn" onclick="adjustPet('cats', -1)" aria-label="Moins de chats">−</button>
+                    <button type="button" class="stepper-btn" data-pet-kind="cats" data-delta="-1" aria-label="Moins de chats">−</button>
                     <span class="stepper-val" id="partyPetCatsCount">0</span>
-                    <button type="button" class="stepper-btn" onclick="adjustPet('cats', 1)" aria-label="Plus de chats">+</button>
+                    <button type="button" class="stepper-btn" data-pet-kind="cats" data-delta="1" aria-label="Plus de chats">+</button>
                   </div>
                 </div>
 
@@ -499,9 +547,9 @@
                     <span class="party-role-hint">NAC, lapin, oiseau…</span>
                   </div>
                   <div class="stepper">
-                    <button type="button" class="stepper-btn" onclick="adjustPet('others', -1)" aria-label="Moins d'autres animaux">−</button>
+                    <button type="button" class="stepper-btn" data-pet-kind="others" data-delta="-1" aria-label="Moins d'autres animaux">−</button>
                     <span class="stepper-val" id="partyPetOthersCount">0</span>
-                    <button type="button" class="stepper-btn" onclick="adjustPet('others', 1)" aria-label="Plus d'autres animaux">+</button>
+                    <button type="button" class="stepper-btn" data-pet-kind="others" data-delta="1" aria-label="Plus d'autres animaux">+</button>
                   </div>
                 </div>
               </div>
@@ -516,7 +564,7 @@
           </div>
         </div>
 
-        <!-- Mode de transport (Cartes visuelles modernes) -->
+        <!-- Mode de transport -->
         <div class="form-group">
           <label class="form-label">Mode de transport</label>
           <input type="hidden" id="tripTransportSelect" value="avion">
@@ -525,7 +573,7 @@
           </div>
         </div>
 
-        <!-- Saison & Climat (Cartes visuelles modernes) -->
+        <!-- Saison & Climat -->
         <div class="form-group">
           <label class="form-label">Saison &amp; Climat</label>
           <input type="hidden" id="tripSeasonSelect" value="misaison">
@@ -534,7 +582,7 @@
           </div>
         </div>
 
-        <!-- Durée & Style de séjour (Cartes visuelles modernes) -->
+        <!-- Durée & Style de séjour -->
         <div class="form-group">
           <label class="form-label">Durée &amp; Style de séjour</label>
           <input type="hidden" id="tripTypeSelect" value="weekend">
@@ -547,11 +595,21 @@
               <span class="days-duration-hint">Adapte les quantités (tenues, couches, croquettes…)</span>
             </div>
             <div class="stepper">
-              <button type="button" class="stepper-btn" onclick="adjustTripDays(-1)" aria-label="Moins de jours">−</button>
-              <input type="number" id="tripDaysInput" class="days-input tabular-nums" min="1" max="365" value="3" aria-label="Nombre de jours du séjour" oninput="onTripDaysInput(this.value)">
+              <button type="button" class="stepper-btn" data-days-delta="-1" aria-label="Moins de jours">−</button>
+              <input type="number" id="tripDaysInput" class="days-input tabular-nums" min="1" max="365" value="3" aria-label="Nombre de jours du séjour">
               <span class="days-unit">j</span>
-              <button type="button" class="stepper-btn" onclick="adjustTripDays(1)" aria-label="Plus de jours">+</button>
+              <button type="button" class="stepper-btn" data-days-delta="1" aria-label="Plus de jours">+</button>
             </div>
+          </div>
+          <div class="days-duration-bar laundry-toggle-bar">
+            <div class="days-duration-info">
+              <span class="days-duration-title">Lessive prévue sur place</span>
+              <span class="days-duration-hint">Limite les tenues à 8 jours et ajoute le nécessaire de lavage</span>
+            </div>
+            <label class="switch-toggle" aria-label="Lessive prévue sur place">
+              <input type="checkbox" id="tripLaundryToggle">
+              <span class="switch-slider"></span>
+            </label>
           </div>
         </div>
 
@@ -575,20 +633,20 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeTripModal()">Annuler</button>
+          <button type="button" class="btn btn-secondary" data-close-modal="tripModal">Annuler</button>
           <button type="submit" class="btn btn-primary" id="tripSubmitBtn">Créer la checklist</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal: Custom Destination Picker (Recherche rapide + Filtre Régions) -->
+  <!-- Modal: Custom Destination Picker -->
   <div class="modal-overlay" id="countryPickerModal" role="dialog" aria-modal="true" aria-labelledby="countryPickerTitle">
     <div class="modal-sheet modal-sheet-lg">
       <div class="sheet-handle" aria-hidden="true"></div>
       <div class="modal-header">
         <h2 id="countryPickerTitle">Choisir une destination</h2>
-        <button class="icon-btn icon-btn-subtle" onclick="closeCountryPickerModal()" aria-label="Fermer">
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="countryPickerModal" aria-label="Fermer">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -599,12 +657,37 @@
       </div>
 
       <div class="region-tabs" id="regionTabsContainer">
-        <!-- Rendu dynamique par app.js (Toutes, Europe, Asie, etc.) -->
+        <!-- Rendu dynamique par app.js -->
       </div>
 
       <div class="country-picker-list" id="countryPickerList">
         <!-- Rendu dynamique des 32 pays -->
       </div>
+    </div>
+  </div>
+
+  <!-- Modal: Baggage Weight Limits -->
+  <div class="modal-overlay" id="baggageLimitsModal" role="dialog" aria-modal="true" aria-labelledby="baggageLimitsTitle">
+    <div class="modal-sheet modal-sheet-sm">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="baggageLimitsTitle">Franchises de poids (kg)</h2>
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="baggageLimitsModal" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="baggageLimitsForm" class="modal-form">
+        <p class="baggage-limits-hint">Adaptez le poids maximum autorisé par votre transporteur ou le nombre de valises.</p>
+        <div id="baggageLimitsFields" class="baggage-limits-fields"></div>
+        <div class="baggage-limits-presets">
+          <button type="button" class="btn btn-ghost btn-sm" id="btnScaleBaggageLimits">Multiplier par voyageurs</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnResetBaggageLimits">Réinitialiser</button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="baggageLimitsModal">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -614,7 +697,7 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <div class="modal-header">
         <h2 id="tripsModalTitle">Mes voyages</h2>
-        <button class="icon-btn icon-btn-subtle" onclick="closeTripsModal()" aria-label="Fermer">
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="tripsModal" aria-label="Fermer">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -634,16 +717,16 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <div class="modal-header">
         <h2 id="templatesModalTitle">Modèles &amp; Checklists</h2>
-        <button class="icon-btn icon-btn-subtle" onclick="closeTemplatesModal()" aria-label="Fermer">
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="templatesModal" aria-label="Fermer">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
 
       <div class="template-actions-top">
-        <button class="btn btn-primary btn-sm" id="btnSaveAsTemplate" style="flex: 1;">
+        <button type="button" class="btn btn-primary btn-sm" id="btnSaveAsTemplate" style="flex: 1;">
           Sauvegarder ce voyage
         </button>
-        <button class="btn btn-secondary btn-sm" id="btnCreateBlankTrip" style="flex: 1;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCreateBlankTrip" style="flex: 1;">
           Checklist vierge
         </button>
       </div>
@@ -656,26 +739,28 @@
   <div class="modal-overlay" id="updateModal" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
     <div class="modal-sheet modal-sheet-sm">
       <div class="sheet-handle" aria-hidden="true"></div>
-      <div class="modal-header" style="align-items: center; gap: 12px;">
-        <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(30, 77, 59, 0.12); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
-          🚀
+      <div class="modal-header update-modal-header">
+        <div class="update-icon-badge" aria-hidden="true">🚀</div>
+        <div class="update-title-wrap">
+          <h2 id="updateTitle">Mise à jour disponible</h2>
+          <span id="updateVersionBadge" class="update-version-badge">Nouvelle version disponible</span>
         </div>
-        <div style="flex: 1; min-width: 0;">
-          <h2 id="updateTitle" style="margin: 0; font-size: 1.15rem; font-weight: 700;">Mise à jour disponible</h2>
-          <span id="updateVersionBadge" style="font-size: 0.8rem; color: var(--text-muted);">Nouvelle version disponible</span>
-        </div>
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="updateModal" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
-      <div id="updateBody" style="margin: 14px 0 16px;">
-        <div style="font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px;">Nouveautés :</div>
-        <div id="updateNotes" style="white-space: pre-line; background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); font-size: 0.88rem; max-height: 180px; overflow-y: auto; border: 1px solid var(--border-subtle); line-height: 1.5;"></div>
+      <div id="updateBody" class="update-body">
+        <div class="update-notes-label">Nouveautés (depuis Git) :</div>
+        <div id="updateNotes" class="update-notes-box"></div>
       </div>
-      <div id="updateInstructions" style="display: none; background: rgba(30, 77, 59, 0.08); border-left: 3px solid #1E4D3B; padding: 10px 12px; border-radius: 6px; font-size: 0.84rem; margin-bottom: 14px; line-height: 1.45;">
+      <div id="updateInstructions" class="update-instructions" style="display: none;">
         📥 <strong>Téléchargement en cours !</strong><br>
         Dès qu'il est terminé, appuyez sur la notification de téléchargement de votre téléphone pour lancer l'installation.
       </div>
-      <div class="modal-footer" style="display: flex; gap: 8px;">
-        <button type="button" class="btn btn-secondary" id="updateDismissBtn" style="flex: 1;">Plus tard</button>
-        <button type="button" class="btn btn-primary" id="updateDownloadBtn" style="flex: 2;">
+      <div class="modal-footer update-modal-footer">
+        <button type="button" class="btn btn-secondary" id="updateDismissBtn">Plus tard</button>
+        <button type="button" class="btn btn-secondary" id="updateWebRefreshBtn" style="display: none;">Actualiser Web</button>
+        <button type="button" class="btn btn-primary" id="updateDownloadBtn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           <span>Mettre à jour</span>
         </button>
