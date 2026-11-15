@@ -147,18 +147,20 @@ body {
 .header-inner {
   max-width: 780px;
   margin: 0 auto;
-  padding: 12px 16px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1 1 0%;
   min-width: 0;
+  overflow: hidden;
 }
 
 .brand {
@@ -189,25 +191,6 @@ body {
   letter-spacing: -0.025em;
 }
 
-.app-version-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  border-radius: var(--radius-full);
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-family: var(--font-sans);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  border: 1px solid rgba(30, 77, 59, 0.16);
-}
-
-[data-theme="dark"] .app-version-badge {
-  border-color: rgba(82, 183, 136, 0.25);
-}
-
 .dropdown-version-tag {
   margin-left: auto;
   font-size: 0.72rem;
@@ -231,7 +214,10 @@ body {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  max-width: 210px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(280px, 100%);
+  overflow: hidden;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -240,9 +226,16 @@ body {
 }
 
 .trip-switcher-label {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.trip-switcher-pill svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
 }
 
 .header-right {
@@ -526,7 +519,7 @@ body {
 
 .hero-title-block {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   min-width: 0;
   flex: 1;
@@ -591,12 +584,16 @@ body {
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .hero-meta {
   font-size: 0.82rem;
   color: var(--text-muted);
   margin-top: 2px;
+  overflow-wrap: anywhere;
 }
 
 .hero-actions {
@@ -2760,6 +2757,32 @@ body {
   }
 }
 
+@media (max-width: 480px) {
+  .header-inner {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .header-right {
+    gap: 5px;
+  }
+
+  .header-right .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 420px) {
+  .header-left.has-switcher .brand-name {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -2808,7 +2831,6 @@ body {
             </svg>
           </div>
           <span class="brand-name">Valise</span>
-          <span class="app-version-badge" id="appVersionBadge">v1.1.0</span>
         </a>
 
         <button type="button" class="trip-switcher-pill" id="btnTripSwitcher" style="display: none;" aria-label="Changer de voyage">
@@ -2875,7 +2897,7 @@ body {
             <button type="button" class="dropdown-item" id="btnCheckUpdate" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
               <span>Vérifier les mises à jour</span>
-              <span class="dropdown-version-tag" id="menuVersionBadge">v1.1.0</span>
+              <span class="dropdown-version-tag" id="menuVersionBadge">v1.1.1</span>
             </button>
           </div>
           <input type="file" id="importFileInput" style="display: none;" accept=".json,application/json">
@@ -4503,7 +4525,7 @@ const DEFAULT_TEMPLATES = [
 (() => {
   'use strict';
 
-  const CURRENT_APP_VERSION = '1.1.0';
+  const CURRENT_APP_VERSION = '1.1.1';
   const GITHUB_REPO = 'QuentinV1/checklist-valise';
   const STORAGE_KEY = 'valise_app_data_v4';
   const LEGACY_STORAGE_KEY_V3 = 'valise_app_data_v3';
@@ -5538,8 +5560,6 @@ const DEFAULT_TEMPLATES = [
   // === INITIALISATION ===
   document.addEventListener('DOMContentLoaded', () => {
     const versionLabel = `v${CURRENT_APP_VERSION}`;
-    const headerVerEl = document.getElementById('appVersionBadge');
-    if (headerVerEl) headerVerEl.textContent = versionLabel;
     const menuVerEl = document.getElementById('menuVersionBadge');
     if (menuVerEl) menuVerEl.textContent = versionLabel;
 
@@ -6381,11 +6401,16 @@ const DEFAULT_TEMPLATES = [
       if (emptyEl) emptyEl.style.display = 'block';
       if (activeEl) activeEl.style.display = 'none';
       if (switcherBtn) {
+        const headerLeft = switcherBtn.closest('.header-left');
         if (appState.trips.length > 0) {
           switcherBtn.style.display = 'inline-flex';
           switcherLabel.textContent = `${appState.trips.length} voyage${appState.trips.length > 1 ? 's' : ''}`;
+          switcherBtn.title = 'Changer de voyage';
+          headerLeft?.classList.add('has-switcher');
         } else {
           switcherBtn.style.display = 'none';
+          switcherBtn.removeAttribute('title');
+          headerLeft?.classList.remove('has-switcher');
         }
       }
       return;
@@ -6396,6 +6421,8 @@ const DEFAULT_TEMPLATES = [
     if (switcherBtn) {
       switcherBtn.style.display = 'inline-flex';
       switcherLabel.textContent = trip.name;
+      switcherBtn.title = trip.name;
+      switcherBtn.closest('.header-left')?.classList.add('has-switcher');
     }
 
     document.querySelectorAll('.view-mode-btn').forEach(btn => {

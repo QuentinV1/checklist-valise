@@ -2,7 +2,7 @@
 (() => {
   'use strict';
 
-  const CURRENT_APP_VERSION = '1.1.0';
+  const CURRENT_APP_VERSION = '1.1.1';
   const GITHUB_REPO = 'QuentinV1/checklist-valise';
   const STORAGE_KEY = 'valise_app_data_v4';
   const LEGACY_STORAGE_KEY_V3 = 'valise_app_data_v3';
@@ -1037,8 +1037,6 @@
   // === INITIALISATION ===
   document.addEventListener('DOMContentLoaded', () => {
     const versionLabel = `v${CURRENT_APP_VERSION}`;
-    const headerVerEl = document.getElementById('appVersionBadge');
-    if (headerVerEl) headerVerEl.textContent = versionLabel;
     const menuVerEl = document.getElementById('menuVersionBadge');
     if (menuVerEl) menuVerEl.textContent = versionLabel;
 
@@ -1880,11 +1878,16 @@
       if (emptyEl) emptyEl.style.display = 'block';
       if (activeEl) activeEl.style.display = 'none';
       if (switcherBtn) {
+        const headerLeft = switcherBtn.closest('.header-left');
         if (appState.trips.length > 0) {
           switcherBtn.style.display = 'inline-flex';
           switcherLabel.textContent = `${appState.trips.length} voyage${appState.trips.length > 1 ? 's' : ''}`;
+          switcherBtn.title = 'Changer de voyage';
+          headerLeft?.classList.add('has-switcher');
         } else {
           switcherBtn.style.display = 'none';
+          switcherBtn.removeAttribute('title');
+          headerLeft?.classList.remove('has-switcher');
         }
       }
       return;
@@ -1895,6 +1898,8 @@
     if (switcherBtn) {
       switcherBtn.style.display = 'inline-flex';
       switcherLabel.textContent = trip.name;
+      switcherBtn.title = trip.name;
+      switcherBtn.closest('.header-left')?.classList.add('has-switcher');
     }
 
     document.querySelectorAll('.view-mode-btn').forEach(btn => {
