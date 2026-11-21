@@ -1,4 +1,4 @@
-const CACHE_NAME = 'valise-app-v8';
+const CACHE_NAME = 'valise-app-v9';
 const ASSETS = [
   './',
   './index.html',

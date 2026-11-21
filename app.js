@@ -4183,6 +4183,13 @@
     const pwd = document.getElementById('auth-password')?.value || '';
     const errEl = document.getElementById('auth-error-msg');
     if (errEl) errEl.style.display = 'none';
+    if (!window.ValiseFirebase) {
+      if (errEl) {
+        errEl.textContent = 'Module Cloud Firebase indisponible (mode hors-ligne ou script non chargé).';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
     try {
       if (isRegister) {
         await window.ValiseFirebase.inscriptionEmail(email, pwd);
@@ -4203,6 +4210,13 @@
   async function soumettreAuthGoogle() {
     const errEl = document.getElementById('auth-error-msg');
     if (errEl) errEl.style.display = 'none';
+    if (!window.ValiseFirebase) {
+      if (errEl) {
+        errEl.textContent = 'Module Cloud Firebase indisponible (mode hors-ligne ou script non chargé).';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
     try {
       await window.ValiseFirebase.connexionGoogle();
       fermerModalAuth();

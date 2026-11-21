@@ -35,7 +35,7 @@ jobs:
         run: |
           npm ci
           mkdir -p www
-          cp index.html app.js data.js style.css manifest.webmanifest sw.js icon-192.png icon-512.png www/
+          cp index.html app.js data.js style.css firebase-config.js firebase-sync.js manifest.webmanifest sw.js icon-192.png icon-512.png www/
           npx cap sync android
 
       - name: Compiler l'APK Debug
