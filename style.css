@@ -2975,7 +2975,7 @@ body {
   align-items: center;
   gap: 7px;
   height: 36px;
-  padding: 0 11px 0 6px;
+  padding: 0 12px;
   border-radius: var(--radius-full);
   border: 1px solid var(--border);
   background: var(--bg-surface);
@@ -2985,6 +2985,16 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.account-pill.is-authenticated {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.account-pill .btn-svg-icon {
+  flex-shrink: 0;
 }
 
 .account-pill:hover {

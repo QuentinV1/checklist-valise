@@ -1,14 +1,20 @@
-// Synchronisation Cloud Firebase (Auth + Cloud Firestore avec persistance hors-ligne)
-const FIREBASE_SDK_VERSION = '11.4.0';
+// Intégration Firebase Auth & Cloud Firestore (quentin-apps-hub) — alignée sur L'Affinoir (app-charcuterie)
+// - valise_users/{uid}/trips/{docId} : voyages & checklists de l'utilisateur
+// - valise_users/{uid}/templates/{docId} : modèles personnalisés de l'utilisateur
+// - valise_users/{uid}/settings/main : préférences d'affichage & voyage actif
 
-function isConfigReady(cfg) {
-  if (!cfg || typeof cfg !== 'object') return false;
-  const required = ['apiKey', 'authDomain', 'projectId', 'appId'];
-  return required.every((k) => {
-    const val = String(cfg[k] || '').trim();
-    return Boolean(val) && !val.startsWith('YOUR_');
-  });
-}
+export const FIREBASE_CONFIG = window.VALISE_FIREBASE_CONFIG || {
+  projectId: 'quentin-apps-hub',
+  appId: '1:249016348389:web:72db83034ab9737b9cee0c',
+  storageBucket: 'quentin-apps-hub.firebasestorage.app',
+  apiKey: 'AIzaSyCuYM0tMpd1f1jDYz27OhCaPpcAWhI3i48',
+  authDomain: 'quentin-apps-hub.firebaseapp.com',
+  messagingSenderId: '249016348389'
+};
+
+let fb = null; // { app, auth, db, authMod, fsMod }
+let currentUser = null;
+let unsubListeners = [];
 
 function translateAuthError(error) {
   const code = error?.code || '';
@@ -32,392 +38,272 @@ function translateAuthError(error) {
     case 'auth/popup-closed-by-user':
       return 'Connexion annulée.';
     case 'auth/unauthorized-domain':
-      return 'Domaine non autorisé dans Firebase Console (Authentication > Settings > Authorized domains).';
-    case 'auth/credential-already-in-use':
-      return 'Ce compte Google ou e-mail est déjà associé à un autre utilisateur.';
-    case 'auth/requires-recent-login':
-      return 'Veuillez vous reconnecter pour effectuer cette action.';
+      return 'Domaine non autorisé dans Firebase Console.';
     default:
       return error?.message || 'Erreur d’authentification.';
   }
 }
 
-const listeners = new Set();
-let auth = null;
-let db = null;
-let sdk = null;
-let currentUser = null;
-let syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'offline' | 'error'
-let unsubscribeSnapshot = null;
-let pushTimer = null;
-let pendingState = null;
-let lastLocalWriteAt = 0;
-let initialCloudSyncDoneForUid = null;
-let knownCloudDocExists = false;
-let initialized = false;
-let initPromise = null;
+export function getFirebaseUser() {
+  return currentUser;
+}
 
-function notify() {
-  const snapshot = getSnapshot();
-  listeners.forEach((fn) => {
-    try { fn(snapshot); } catch (e) { console.warn('ValiseCloud listener error:', e); }
+export function estConnecteFirebase() {
+  return !!currentUser;
+}
+
+export async function initFirebase() {
+  if (fb) return fb;
+  if (window.location.protocol === 'file:') {
+    return null;
+  }
+  try {
+    const [appMod, authMod, fsMod] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js')
+    ]);
+
+    const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(FIREBASE_CONFIG);
+    const auth = authMod.getAuth(app);
+    const db = fsMod.initializeFirestore(app, {
+      localCache: fsMod.persistentLocalCache({
+        tabManager: fsMod.persistentMultipleTabManager()
+      }),
+      ignoreUndefinedProperties: true
+    });
+
+    fb = {
+      app,
+      auth,
+      db,
+      authMod,
+      fsMod
+    };
+    return fb;
+  } catch (err) {
+    console.warn('Firebase SDK indisponible (mode hors-ligne local):', err);
+    return null;
+  }
+}
+
+export function observerAuth(onUserChanged) {
+  initFirebase().then((instance) => {
+    if (!instance) {
+      onUserChanged(null);
+      return;
+    }
+    instance.authMod.onAuthStateChanged(instance.auth, (user) => {
+      currentUser = user || null;
+      onUserChanged(currentUser);
+    });
   });
 }
 
-function setSyncStatus(next) {
-  if (syncStatus !== next) {
-    syncStatus = next;
-    notify();
+export async function connexionEmail(email, password) {
+  const instance = await initFirebase();
+  if (!instance) throw new Error('Firebase indisponible hors-ligne.');
+  try {
+    const cred = await instance.authMod.signInWithEmailAndPassword(instance.auth, email.trim(), password);
+    return cred.user;
+  } catch (err) {
+    throw new Error(translateAuthError(err));
   }
 }
 
-function formatUser(user) {
-  if (!user) return null;
-  const providerId = user.isAnonymous
-    ? 'anonymous'
-    : (user.providerData?.[0]?.providerId || 'password');
-  return {
-    uid: user.uid,
-    email: user.email || null,
-    displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'Invité'),
-    photoURL: user.photoURL || null,
-    isAnonymous: Boolean(user.isAnonymous),
-    providerId
-  };
-}
-
-function getSnapshot() {
-  return {
-    configured: isConfigReady(window.VALISE_FIREBASE_CONFIG),
-    initialized,
-    user: formatUser(currentUser),
-    syncStatus,
-    online: navigator.onLine
-  };
-}
-
-function stopFirestoreListener() {
-  if (unsubscribeSnapshot) {
-    unsubscribeSnapshot();
-    unsubscribeSnapshot = null;
-  }
-  if (pushTimer) {
-    clearTimeout(pushTimer);
-    pushTimer = null;
-  }
-  pendingState = null;
-  initialCloudSyncDoneForUid = null;
-  knownCloudDocExists = false;
-}
-
-function getUserAppDocRef(user) {
-  return sdk.doc(db, 'users', user.uid, 'apps', 'checklist_valise');
-}
-
-function buildFirestorePayload(state, includeCreatedAt = false) {
-  const docData = {
-    title: 'Checklist Valise',
-    updatedAt: sdk.serverTimestamp(),
-    payload: {
-      trips: Array.isArray(state.trips) ? state.trips : [],
-      customTemplates: Array.isArray(state.customTemplates) ? state.customTemplates : [],
-      activeTripId: state.activeTripId || null,
-      viewMode: state.viewMode || 'chrono',
-      filterPhase: state.filterPhase || 'all',
-      filterBaggage: state.filterBaggage || 'all',
-      filterStatus: state.filterStatus || 'all',
-      collapsedSections: state.collapsedSections && typeof state.collapsedSections === 'object'
-        ? state.collapsedSections
-        : {},
-      updatedAtMs: Date.now()
+export async function inscriptionEmail(email, password) {
+  const instance = await initFirebase();
+  if (!instance) throw new Error('Firebase indisponible hors-ligne.');
+  try {
+    const cred = await instance.authMod.createUserWithEmailAndPassword(instance.auth, email.trim(), password);
+    if (cred.user && instance.authMod.sendEmailVerification) {
+      instance.authMod.sendEmailVerification(cred.user).catch(() => {});
     }
-  };
-  if (includeCreatedAt) {
-    docData.createdAt = sdk.serverTimestamp();
+    return cred.user;
+  } catch (err) {
+    throw new Error(translateAuthError(err));
   }
-  return docData;
 }
 
-function startUserSync(user) {
-  if (!db || !sdk || !user) return;
-  stopFirestoreListener();
+export async function renvoyerEmailVerification() {
+  const instance = await initFirebase();
+  if (!instance || !instance.auth.currentUser) throw new Error('Aucun utilisateur connecté.');
+  if (instance.auth.currentUser.emailVerified) return false;
+  await instance.authMod.sendEmailVerification(instance.auth.currentUser);
+  return true;
+}
 
-  const userRef = getUserAppDocRef(user);
-  setSyncStatus(navigator.onLine ? 'syncing' : 'offline');
+export async function rechargerUtilisateurFirebase() {
+  const instance = await initFirebase();
+  if (!instance || !instance.auth.currentUser) return null;
+  await instance.auth.currentUser.reload();
+  currentUser = instance.auth.currentUser;
+  return currentUser;
+}
 
-  unsubscribeSnapshot = sdk.onSnapshot(
-    userRef,
-    { includeMetadataChanges: true },
-    async (docSnap) => {
-      const isInitialForUser = initialCloudSyncDoneForUid !== user.uid;
-      const fromCache = docSnap.metadata.fromCache;
-      const hasPending = docSnap.metadata.hasPendingWrites;
+export async function connexionGoogle() {
+  const instance = await initFirebase();
+  if (!instance) throw new Error('Firebase indisponible hors-ligne.');
+  try {
+    const provider = new instance.authMod.GoogleAuthProvider();
+    const cred = await instance.authMod.signInWithPopup(instance.auth, provider);
+    return cred.user;
+  } catch (err) {
+    throw new Error(translateAuthError(err));
+  }
+}
 
-      if (docSnap.exists()) {
-        knownCloudDocExists = true;
+export async function deconnexionFirebase() {
+  arreterListenersFirestore();
+  if (!fb) return;
+  await fb.authMod.signOut(fb.auth);
+  currentUser = null;
+}
+
+export function arreterListenersFirestore() {
+  unsubListeners.forEach(unsub => {
+    try { unsub(); } catch {}
+  });
+  unsubListeners = [];
+}
+
+function cleanForFirestore(obj) {
+  return JSON.parse(JSON.stringify(obj, (k, v) => (v === undefined ? null : v)));
+}
+
+// Écoute temps réel des collections privées de l'utilisateur + settings/main
+export function demarrerSyncFirestore({
+  onCollectionUpdate,
+  onSettingsUpdate,
+  onSyncError
+}) {
+  arreterListenersFirestore();
+  if (!fb || !currentUser) return;
+
+  const { collection, doc, onSnapshot } = fb.fsMod;
+  const uid = currentUser.uid;
+  const handleErr = (label, err) => {
+    console.warn(`Sync ${label}:`, err);
+    if (typeof onSyncError === 'function') onSyncError(err, label);
+  };
+
+  const userCollections = ['trips', 'templates'];
+  userCollections.forEach(colName => {
+    unsubListeners.push(
+      onSnapshot(collection(fb.db, 'valise_users', uid, colName), (snap) => {
+        const list = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        onCollectionUpdate(colName, list, snap.metadata.fromCache);
+      }, (err) => handleErr(colName, err))
+    );
+  });
+
+  unsubListeners.push(
+    onSnapshot(doc(fb.db, 'valise_users', uid, 'settings', 'main'), (snap) => {
+      if (snap.exists()) {
+        onSettingsUpdate(snap.data());
       }
-
-      if (hasPending) {
-        setSyncStatus(navigator.onLine ? 'syncing' : 'offline');
-        return;
-      }
-
-      const rawData = docSnap.exists() ? docSnap.data() : null;
-      const cloudData = rawData?.payload || null;
-
-      if (isInitialForUser) {
-        initialCloudSyncDoneForUid = user.uid;
-        if (window.ValiseApp && typeof window.ValiseApp.onCloudInitialData === 'function') {
-          const mergedState = window.ValiseApp.onCloudInitialData(formatUser(user), cloudData);
-          if (mergedState) {
-            await writeToFirestoreNow(mergedState, user);
-          }
-        }
-      } else if (cloudData) {
-        const remoteTs = Number(cloudData.updatedAtMs || rawData?.updatedAt?.toMillis?.() || 0);
-        if (remoteTs > lastLocalWriteAt + 500) {
-          window.ValiseApp?.onCloudRemoteUpdate?.(formatUser(user), cloudData);
-        }
-      }
-
-      setSyncStatus(!navigator.onLine || fromCache ? (navigator.onLine ? 'synced' : 'offline') : 'synced');
-    },
-    (err) => {
-      console.warn('Erreur Firestore onSnapshot:', err);
-      setSyncStatus(navigator.onLine ? 'error' : 'offline');
-    }
+    }, (err) => handleErr('settings', err))
   );
 }
 
-async function writeToFirestoreNow(state, user = currentUser) {
-  if (!db || !sdk || !user || !state) return;
-  const userRef = getUserAppDocRef(user);
-  const payload = buildFirestorePayload(state, !knownCloudDocExists);
-  lastLocalWriteAt = payload.payload.updatedAtMs;
-  setSyncStatus(navigator.onLine ? 'syncing' : 'offline');
-  try {
-    await sdk.setDoc(userRef, payload, { merge: true });
-    knownCloudDocExists = true;
-    setSyncStatus(navigator.onLine ? 'synced' : 'offline');
-  } catch (err) {
-    console.warn('Erreur écriture Firestore:', err);
-    setSyncStatus(navigator.onLine ? 'error' : 'offline');
+// Découpage en lots <= 450 opérations par writeBatch
+async function commitBatchChunked(db, writeBatchFn, operations) {
+  const CHUNK_SIZE = 450;
+  for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
+    const chunk = operations.slice(i, i + CHUNK_SIZE);
+    const batch = writeBatchFn(db);
+    chunk.forEach(op => {
+      if (op.type === 'delete') {
+        batch.delete(op.ref);
+      } else if (op.type === 'set') {
+        batch.set(op.ref, op.data);
+      }
+    });
+    await batch.commit();
   }
 }
 
-async function init() {
-  if (initPromise) return initPromise;
-  initPromise = (async () => {
-    const cfg = window.VALISE_FIREBASE_CONFIG;
-    if (!isConfigReady(cfg) || window.location.protocol === 'file:') {
-      initialized = true;
-      setSyncStatus('local');
-      notify();
-      return;
-    }
+export async function syncAllUserDataToFirestore(appState) {
+  if (!fb || !currentUser) return;
+  const { collection, doc, writeBatch, getDocs } = fb.fsMod;
+  const uid = currentUser.uid;
+  const nowIso = new Date().toISOString();
 
-    try {
-      const baseUrl = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
-      const [appMod, authMod, fsMod] = await Promise.all([
-        import(`${baseUrl}/firebase-app.js`),
-        import(`${baseUrl}/firebase-auth.js`),
-        import(`${baseUrl}/firebase-firestore.js`)
-      ]);
+  const mapping = [
+    ['trips', appState.trips || []],
+    ['templates', appState.customTemplates || []]
+  ];
 
-      sdk = { ...appMod, ...authMod, ...fsMod };
-      const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(cfg);
-      auth = authMod.getAuth(app);
+  for (const [colName, items] of mapping) {
+    const colRef = collection(fb.db, 'valise_users', uid, colName);
+    const existingSnap = await getDocs(colRef);
+    const currentIds = new Set(items.filter(i => i && i.id).map(i => String(i.id)));
 
-      try {
-        db = fsMod.initializeFirestore(app, {
-          localCache: fsMod.persistentLocalCache({
-            tabManager: fsMod.persistentMultipleTabManager()
-          })
+    const ops = [];
+    existingSnap.docs.forEach(d => {
+      if (!currentIds.has(d.id)) {
+        ops.push({ type: 'delete', ref: d.ref });
+      }
+    });
+
+    items.forEach(item => {
+      if (item && item.id) {
+        const docId = String(item.id);
+        const normalized = {
+          ...item,
+          id: docId,
+          createdAt: item.createdAt || nowIso,
+          updatedAt: nowIso
+        };
+        ops.push({
+          type: 'set',
+          ref: doc(colRef, docId),
+          data: cleanForFirestore(normalized)
         });
-      } catch (cacheErr) {
-        db = fsMod.getFirestore(app);
       }
+    });
 
-      // Gère le retour d'une redirection Google OAuth si utilisée
-      authMod.getRedirectResult(auth).catch((err) => {
-        console.warn('Erreur getRedirectResult:', err);
-      });
-
-      authMod.onAuthStateChanged(auth, (user) => {
-        const prevUid = currentUser?.uid || null;
-        currentUser = user || null;
-        if (currentUser) {
-          if (prevUid !== currentUser.uid) {
-            startUserSync(currentUser);
-          }
-        } else {
-          stopFirestoreListener();
-          setSyncStatus('local');
-          window.ValiseApp?.onCloudSignedOut?.();
-        }
-        notify();
-      });
-
-      initialized = true;
-      notify();
-    } catch (err) {
-      console.warn('Firebase SDK indisponible (mode hors-ligne local):', err);
-      initialized = true;
-      setSyncStatus('local');
-      notify();
+    if (ops.length > 0) {
+      await commitBatchChunked(fb.db, writeBatch, ops);
     }
-  })();
+  }
 
-  return initPromise;
+  await setDocSettingsFirestore(appState);
 }
 
-window.addEventListener('online', () => {
-  if (currentUser) setSyncStatus('syncing');
-  notify();
-});
+export async function setDocSettingsFirestore(appState) {
+  if (!fb || !currentUser) return;
+  const { doc, setDoc } = fb.fsMod;
+  const nowIso = new Date().toISOString();
+  await setDoc(doc(fb.db, 'valise_users', currentUser.uid, 'settings', 'main'), cleanForFirestore({
+    id: 'main',
+    activeTripId: appState.activeTripId || null,
+    viewMode: appState.viewMode || 'chrono',
+    filterPhase: appState.filterPhase || 'all',
+    filterBaggage: appState.filterBaggage || 'all',
+    filterStatus: appState.filterStatus || 'all',
+    collapsedSections: (appState.collapsedSections && typeof appState.collapsedSections === 'object')
+      ? appState.collapsedSections
+      : {},
+    updatedAt: nowIso
+  }));
+}
 
-window.addEventListener('offline', () => {
-  if (currentUser) setSyncStatus('offline');
-  notify();
-});
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && pendingState && currentUser) {
-    const toFlush = pendingState;
-    pendingState = null;
-    if (pushTimer) {
-      clearTimeout(pushTimer);
-      pushTimer = null;
-    }
-    writeToFirestoreNow(toFlush, currentUser);
-  }
-});
-
-window.ValiseCloud = {
-  init,
-  getSnapshot,
-  isConfigured: () => isConfigReady(window.VALISE_FIREBASE_CONFIG),
-  getUser: () => formatUser(currentUser),
-  onChange(fn) {
-    if (typeof fn === 'function') listeners.add(fn);
-    return () => listeners.delete(fn);
-  },
-
-  pushState(state) {
-    if (!currentUser || !db || !sdk) return;
-    pendingState = state;
-    if (pushTimer) clearTimeout(pushTimer);
-    pushTimer = setTimeout(() => {
-      const toFlush = pendingState;
-      pendingState = null;
-      pushTimer = null;
-      if (toFlush && currentUser) {
-        writeToFirestoreNow(toFlush, currentUser);
-      }
-    }, 400);
-  },
-
-  async forceSync(state) {
-    await init();
-    if (!currentUser) throw new Error('Aucun compte connecté.');
-    if (pushTimer) {
-      clearTimeout(pushTimer);
-      pushTimer = null;
-    }
-    pendingState = null;
-    await writeToFirestoreNow(state, currentUser);
-  },
-
-  async signInWithEmail(email, password) {
-    await init();
-    if (!auth || !sdk) throw new Error('Firebase non configuré.');
-    try {
-      const cred = await sdk.signInWithEmailAndPassword(auth, email.trim(), password);
-      return formatUser(cred.user);
-    } catch (err) {
-      throw new Error(translateAuthError(err));
-    }
-  },
-
-  async signUpWithEmail(email, password, displayName = '') {
-    await init();
-    if (!auth || !sdk) throw new Error('Firebase non configuré.');
-    try {
-      let cred;
-      if (currentUser && currentUser.isAnonymous) {
-        const credential = sdk.EmailAuthProvider.credential(email.trim(), password);
-        cred = await sdk.linkWithCredential(currentUser, credential);
-      } else {
-        cred = await sdk.createUserWithEmailAndPassword(auth, email.trim(), password);
-      }
-      if (displayName.trim()) {
-        await sdk.updateProfile(cred.user, { displayName: displayName.trim() });
-      }
-      return formatUser(cred.user);
-    } catch (err) {
-      throw new Error(translateAuthError(err));
-    }
-  },
-
-  async sendPasswordReset(email) {
-    await init();
-    if (!auth || !sdk) throw new Error('Firebase non configuré.');
-    try {
-      await sdk.sendPasswordResetEmail(auth, email.trim());
-    } catch (err) {
-      throw new Error(translateAuthError(err));
-    }
-  },
-
-  async signInWithGoogle() {
-    await init();
-    if (!auth || !sdk) throw new Error('Firebase non configuré.');
-    const provider = new sdk.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    try {
-      if (currentUser && currentUser.isAnonymous) {
-        const cred = await sdk.linkWithPopup(currentUser, provider);
-        return formatUser(cred.user);
-      }
-      const cred = await sdk.signInWithPopup(auth, provider);
-      return formatUser(cred.user);
-    } catch (err) {
-      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/operation-not-supported-in-this-environment') {
-        await sdk.signInWithRedirect(auth, provider);
-        return null;
-      }
-      throw new Error(translateAuthError(err));
-    }
-  },
-
-  async signInAsGuest() {
-    await init();
-    if (!auth || !sdk || !navigator.onLine) {
-      // Mode invité local pur
-      return null;
-    }
-    try {
-      const cred = await sdk.signInAnonymously(auth);
-      return formatUser(cred.user);
-    } catch (err) {
-      // Si l'auth anonyme est désactivée dans la console Firebase, on reste en mode invité local
-      console.warn('Auth anonyme indisponible, bascule en invité local:', err?.code || err);
-      return null;
-    }
-  },
-
-  async signOut() {
-    await init();
-    if (!auth || !sdk) return;
-    if (pendingState && currentUser) {
-      const toFlush = pendingState;
-      pendingState = null;
-      if (pushTimer) {
-        clearTimeout(pushTimer);
-        pushTimer = null;
-      }
-      await writeToFirestoreNow(toFlush, currentUser);
-    }
-    await sdk.signOut(auth);
-  }
+// Exposer l'API sur window.ValiseFirebase pour app.js (compatible build standalone)
+window.ValiseFirebase = {
+  FIREBASE_CONFIG,
+  getFirebaseUser,
+  estConnecteFirebase,
+  initFirebase,
+  observerAuth,
+  connexionEmail,
+  inscriptionEmail,
+  renvoyerEmailVerification,
+  rechargerUtilisateurFirebase,
+  connexionGoogle,
+  deconnexionFirebase,
+  arreterListenersFirestore,
+  demarrerSyncFirestore,
+  syncAllUserDataToFirestore,
+  setDocSettingsFirestore
 };

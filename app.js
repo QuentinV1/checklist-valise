@@ -2,14 +2,17 @@
 (() => {
   'use strict';
 
-  const CURRENT_APP_VERSION = '1.1.1';
+  const CURRENT_APP_VERSION = '1.2.0';
   const GITHUB_REPO = 'QuentinV1/checklist-valise';
   const STORAGE_KEY = 'valise_app_data_v4';
+  const LAST_UID_KEY = 'valise_last_uid';
   const LEGACY_STORAGE_KEY_V3 = 'valise_app_data_v3';
   const LEGACY_STORAGE_KEY_V2 = 'valise_app_data_v2';
   const THEME_KEY = 'valise_theme';
   const UPDATE_DISMISSED_KEY = 'valise_update_dismissed';
 
+  const SVG_CLOUD = `<svg class="btn-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`;
+  const SVG_USER = `<svg class="btn-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
   const SVG_CHECK = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
   const SVG_EDIT = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`;
   const SVG_TRASH = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`;
@@ -41,9 +44,25 @@
   let currentRegionFilter = 'all';
   let confirmCallback = null;
   let latestReleaseData = null;
-  let activeCloudUser = null;
-  let authMode = 'login'; // 'login' | 'signup'
-  let authLinkingGuestEmail = false;
+
+  const cloudState = {
+    initialSyncDone: false,
+    syncedCols: {},
+    syncStatus: 'idle', // 'idle' | 'syncing' | 'synced' | 'error'
+    syncError: null,
+    lastSyncedAt: null
+  };
+
+  function reinitialiserEtatCloud() {
+    cloudState.initialSyncDone = false;
+    cloudState.syncedCols = {};
+    cloudState.syncStatus = 'idle';
+    cloudState.syncError = null;
+    cloudState.lastSyncedAt = null;
+  }
+
+  let _suppressCloudSync = false;
+  let _syncTimer = null;
 
   function createDefaultParty() {
     return {
@@ -412,7 +431,7 @@
       ? rawData.activeTripId
       : (trips[0]?.id || null);
 
-    const viewMode = ['chrono', 'baggage', 'category'].includes(rawData.viewMode) ? rawData.viewMode : 'chrono';
+    const viewMode = ['chrono', 'baggage', 'category', 'person'].includes(rawData.viewMode) ? rawData.viewMode : 'chrono';
     const filterPhase = rawData.filterPhase === 'all' || CHRONO_PHASES[rawData.filterPhase] ? rawData.filterPhase : 'all';
     const filterStatus = ['all', 'todo', 'done'].includes(rawData.filterStatus) ? rawData.filterStatus : 'all';
     const filterBaggage = typeof rawData.filterBaggage === 'string' && rawData.filterBaggage
@@ -969,10 +988,6 @@
   }
 
   // === STATE & LOCALSTORAGE ===
-  function getActiveStorageKey() {
-    return activeCloudUser?.uid ? `valise_user_data_${activeCloudUser.uid}` : STORAGE_KEY;
-  }
-
   function createEmptyAppState() {
     return {
       trips: [],
@@ -987,27 +1002,19 @@
     };
   }
 
-  function loadGuestLocalState() {
-    const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY_V3) || localStorage.getItem(LEGACY_STORAGE_KEY_V2);
-    if (!saved) return null;
-    try {
-      return sanitizeImportedState(JSON.parse(saved));
-    } catch (e) {
-      return null;
-    }
-  }
-
   function loadState() {
-    const key = getActiveStorageKey();
-    const saved = activeCloudUser?.uid
-      ? localStorage.getItem(key)
-      : (localStorage.getItem(key) || localStorage.getItem(LEGACY_STORAGE_KEY_V3) || localStorage.getItem(LEGACY_STORAGE_KEY_V2));
+    const lastUid = localStorage.getItem(LAST_UID_KEY);
+    const saved = localStorage.getItem(STORAGE_KEY)
+      || (lastUid ? localStorage.getItem(`valise_user_data_${lastUid}`) : null)
+      || localStorage.getItem(LEGACY_STORAGE_KEY_V3)
+      || localStorage.getItem(LEGACY_STORAGE_KEY_V2);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         const clean = sanitizeImportedState(parsed);
         if (clean) {
           appState = clean;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
           return;
         }
       } catch (e) {
@@ -1019,13 +1026,32 @@
 
   function saveState(shouldRender = true, skipCloudPush = false) {
     try {
-      localStorage.setItem(getActiveStorageKey(), JSON.stringify(appState));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
     } catch (e) {
       console.warn('Erreur sauvegarde localStorage:', e);
       showToast('Espace de stockage local saturé');
     }
-    if (!skipCloudPush && activeCloudUser?.uid && window.ValiseCloud) {
-      window.ValiseCloud.pushState(appState);
+    const fb = window.ValiseFirebase;
+    if (!skipCloudPush && !_suppressCloudSync && fb?.estConnecteFirebase?.() && cloudState.initialSyncDone) {
+      clearTimeout(_syncTimer);
+      cloudState.syncStatus = 'syncing';
+      cloudState.syncError = null;
+      majStatutSyncModal();
+      _syncTimer = setTimeout(async () => {
+        try {
+          await fb.syncAllUserDataToFirestore(appState);
+          cloudState.syncStatus = 'synced';
+          cloudState.lastSyncedAt = new Date().toISOString();
+          majStatutSyncModal();
+        } catch (err) {
+          console.warn('Sync Firestore:', err);
+          cloudState.syncStatus = 'error';
+          cloudState.syncError = err?.code === 'permission-denied'
+            ? 'Accès Firestore refusé (vérifiez que votre e-mail est bien vérifié et autorisé).'
+            : (err?.message || 'Erreur de synchronisation Firestore');
+          majStatutSyncModal();
+        }
+      }, 450);
     }
     if (shouldRender) render();
   }
@@ -1119,10 +1145,6 @@
     initListeners();
     initAuthModule();
     render();
-
-    if (window.ValiseCloud && typeof window.ValiseCloud.init === 'function') {
-      window.ValiseCloud.init();
-    }
 
     if (!isNativeAndroidApp() && window.location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -1505,10 +1527,10 @@
   function initListeners() {
     // Header & More Menu
     document.getElementById('btnThemeToggle')?.addEventListener('click', toggleTheme);
-    document.getElementById('btnAccount')?.addEventListener('click', openAuthModal);
+    document.getElementById('btn-auth-header')?.addEventListener('click', ouvrirModalAuth);
     document.getElementById('btnMenuAccount')?.addEventListener('click', () => {
       closeMoreMenu();
-      openAuthModal();
+      ouvrirModalAuth();
     });
     document.getElementById('btnNewTripHeader')?.addEventListener('click', () => openTripModal(null));
     document.getElementById('btnTripSwitcher')?.addEventListener('click', openTripsModal);
@@ -1879,25 +1901,25 @@
     const diffDays = Math.round((depDate.getTime() - today.getTime()) / 86400000);
 
     if (diffDays > 180) {
-      return { label: `📅 J-${diffDays}`, variant: '', suggestedPhase: 'phase_6months' };
+      return { label: `J-${diffDays}`, variant: '', suggestedPhase: 'phase_6months' };
     }
     if (diffDays > 7) {
-      return { label: `📅 J-${diffDays}`, variant: '', suggestedPhase: 'phase_prep' };
+      return { label: `J-${diffDays}`, variant: '', suggestedPhase: 'phase_prep' };
     }
     if (diffDays > 1) {
-      return { label: `📅 J-${diffDays}`, variant: 'is-soon', suggestedPhase: 'phase_pack' };
+      return { label: `J-${diffDays}`, variant: 'is-soon', suggestedPhase: 'phase_pack' };
     }
     if (diffDays === 1) {
-      return { label: '📅 Demain (J-1)', variant: 'is-soon', suggestedPhase: 'phase_pack' };
+      return { label: 'Demain (J-1)', variant: 'is-soon', suggestedPhase: 'phase_pack' };
     }
     if (diffDays === 0) {
-      return { label: '🚀 Jour J !', variant: 'is-today', suggestedPhase: 'phase_departure' };
+      return { label: 'Jour J !', variant: 'is-today', suggestedPhase: 'phase_departure' };
     }
     const elapsed = Math.abs(diffDays);
     if (elapsed <= Math.max(1, Number(days) || 3)) {
-      return { label: `🧳 En voyage (J+${elapsed})`, variant: 'is-ongoing', suggestedPhase: 'phase_return' };
+      return { label: `En voyage (J+${elapsed})`, variant: 'is-ongoing', suggestedPhase: 'phase_return' };
     }
-    return { label: '✅ Retour effectué', variant: '', suggestedPhase: 'phase_return' };
+    return { label: 'Retour effectué', variant: '', suggestedPhase: 'phase_return' };
   }
 
   // === RÈGLES IATA ===
@@ -2081,7 +2103,7 @@
         iataEl.style.display = 'flex';
         iataEl.classList.toggle('is-alert', conflictCount > 0);
         if (conflictCount > 0) {
-          iataTextEl.innerHTML = `<strong>⚠️ ${conflictCount} conflit${conflictCount > 1 ? 's' : ''} bagage IATA détecté${conflictCount > 1 ? 's' : ''} :</strong> certains articles sont dans un bagage interdit en avion.`;
+          iataTextEl.innerHTML = `<strong>${conflictCount} conflit${conflictCount > 1 ? 's' : ''} bagage IATA détecté${conflictCount > 1 ? 's' : ''} :</strong> certains articles sont dans un bagage interdit en avion.`;
           if (fixAllBtn) fixAllBtn.style.display = 'inline-flex';
         } else {
           iataTextEl.innerHTML = `<strong>Règle avion :</strong> Batteries externes &amp; objets de valeur en <u>cabine</u> ; couteaux &amp; liquides &gt; 100 ml en <u>soute</u>.`;
@@ -2666,9 +2688,9 @@
     let iataBadge = '';
     if (isPlane) {
       if (conflict === 'must-cabin') {
-        iataBadge = `<button type="button" class="tag-iata-conflict" data-action="fix-iata" data-id="${safeId}" title="Déplacer en cabine">⚠️ Interdit en soute · Mettre en cabine</button>`;
+        iataBadge = `<button type="button" class="tag-iata-conflict" data-action="fix-iata" data-id="${safeId}" title="Déplacer en cabine">Interdit en soute · Mettre en cabine</button>`;
       } else if (conflict === 'must-hold') {
-        iataBadge = `<button type="button" class="tag-iata-conflict" data-action="fix-iata" data-id="${safeId}" title="Déplacer en soute">⛔ Interdit en cabine · Mettre en soute</button>`;
+        iataBadge = `<button type="button" class="tag-iata-conflict" data-action="fix-iata" data-id="${safeId}" title="Déplacer en soute">Interdit en cabine · Mettre en soute</button>`;
       } else if (item.iata === 'cabin-only') {
         iataBadge = `<span class="tag-iata tag-cabin">Cabine seule</span>`;
       } else if (item.iata === 'hold-only') {
@@ -3917,359 +3939,383 @@
     }
   }
 
-  // === COMPTE UTILISATEUR, AUTHENTIFICATION & SYNCHRONISATION CLOUD ===
-  function mergeStates(baseState, incomingGuestState) {
-    const merged = sanitizeImportedState(baseState) || createEmptyAppState();
-    const guest = sanitizeImportedState(incomingGuestState);
-    if (!guest) return { state: merged, addedTrips: 0, addedTemplates: 0 };
-
-    const existingTripIds = new Set(merged.trips.map(t => t.id));
-    let addedTrips = 0;
-    guest.trips.forEach(t => {
-      if (!existingTripIds.has(t.id)) {
-        merged.trips.push(t);
-        existingTripIds.add(t.id);
-        addedTrips++;
-      }
-    });
-
-    const existingTplIds = new Set(merged.customTemplates.map(tpl => tpl.id));
-    let addedTemplates = 0;
-    guest.customTemplates.forEach(tpl => {
-      if (!existingTplIds.has(tpl.id)) {
-        merged.customTemplates.push(tpl);
-        existingTplIds.add(tpl.id);
-        addedTemplates++;
-      }
-    });
-
-    if (!merged.activeTripId && merged.trips.length > 0) {
-      merged.activeTripId = guest.activeTripId && merged.trips.some(t => t.id === guest.activeTripId)
-        ? guest.activeTripId
-        : merged.trips[0].id;
+  // === COMPTE UTILISATEUR, AUTHENTIFICATION & SYNCHRONISATION CLOUD (MODÈLE L'AFFINOIR) ===
+  function ensureValidActiveTrip() {
+    if (!appState.trips || appState.trips.length === 0) {
+      appState.activeTripId = null;
+      return;
     }
-
-    return { state: merged, addedTrips, addedTemplates };
+    if (!appState.activeTripId || !appState.trips.some(t => t.id === appState.activeTripId)) {
+      appState.activeTripId = appState.trips[0].id;
+    }
   }
 
-  function clearGuestLocalStorageAfterMigration() {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(LEGACY_STORAGE_KEY_V3);
-    localStorage.removeItem(LEGACY_STORAGE_KEY_V2);
+  async function activerSyncCloud() {
+    const fb = window.ValiseFirebase;
+    if (!fb || !fb.estConnecteFirebase()) return;
+    reinitialiserEtatCloud();
+    cloudState.syncStatus = 'syncing';
+    majStatutSyncModal();
+
+    const user = fb.getFirebaseUser();
+    const currentUid = user ? user.uid : null;
+    const previousUid = localStorage.getItem(LAST_UID_KEY);
+    const isNewDeviceLogin = !!(currentUid && previousUid !== currentUid);
+    let needsPushAfterInit = false;
+
+    const collectionMap = {
+      trips: 'trips',
+      templates: 'customTemplates'
+    };
+
+    fb.demarrerSyncFirestore({
+      onCollectionUpdate: (colName, list, fromCache = false) => {
+        const stateKey = collectionMap[colName];
+        if (!stateKey) return;
+
+        // Ne jamais traiter un cache local vide comme un serveur vide
+        if (fromCache && list.length === 0) {
+          return;
+        }
+
+        const usedIds = new Set();
+        const sanitizedList = colName === 'trips'
+          ? list.map(t => sanitizeTrip(t, usedIds)).filter(Boolean)
+          : list.map(tpl => sanitizeTemplate(tpl, usedIds)).filter(Boolean);
+
+        const isFirstServerForCol = !fromCache && !cloudState.syncedCols[colName];
+        const localItems = appState[stateKey] || [];
+
+        if (isFirstServerForCol) {
+          cloudState.syncedCols[colName] = true;
+
+          if (sanitizedList.length === 0 && localItems.length > 0) {
+            // Serveur réellement vide et données locales présentes : pousser vers le cloud après init complète
+            needsPushAfterInit = true;
+          } else if (sanitizedList.length > 0 && localItems.length > 0 && isNewDeviceLogin) {
+            // Première connexion sur cet appareil / compte : fusionner serveur + éléments locaux absents du serveur
+            const serverIds = new Set(sanitizedList.map(i => String(i.id)));
+            const localOnly = localItems.filter(i => i && i.id && !serverIds.has(String(i.id)));
+            const merged = [...sanitizedList, ...localOnly];
+            _suppressCloudSync = true;
+            appState[stateKey] = merged;
+            ensureValidActiveTrip();
+            saveState(false, true);
+            _suppressCloudSync = false;
+            if (localOnly.length > 0) {
+              needsPushAfterInit = true;
+            }
+          } else {
+            _suppressCloudSync = true;
+            appState[stateKey] = sanitizedList;
+            ensureValidActiveTrip();
+            saveState(false, true);
+            _suppressCloudSync = false;
+          }
+
+          if (Object.keys(cloudState.syncedCols).length >= 2) {
+            cloudState.initialSyncDone = true;
+            cloudState.syncStatus = 'synced';
+            cloudState.lastSyncedAt = new Date().toISOString();
+            if (currentUid) localStorage.setItem(LAST_UID_KEY, currentUid);
+            if (needsPushAfterInit) {
+              needsPushAfterInit = false;
+              saveState(false, false);
+            }
+          }
+        } else {
+          _suppressCloudSync = true;
+          appState[stateKey] = sanitizedList;
+          ensureValidActiveTrip();
+          saveState(false, true);
+          _suppressCloudSync = false;
+        }
+
+        majStatutSyncModal();
+        render();
+      },
+      onSettingsUpdate: (data) => {
+        if (!data || typeof data !== 'object') return;
+        _suppressCloudSync = true;
+        if (typeof data.activeTripId === 'string' && appState.trips.some(t => t.id === data.activeTripId)) {
+          appState.activeTripId = data.activeTripId;
+        }
+        if (['chrono', 'baggage', 'category', 'person'].includes(data.viewMode)) {
+          appState.viewMode = data.viewMode;
+        }
+        if (data.filterPhase === 'all' || CHRONO_PHASES[data.filterPhase]) {
+          appState.filterPhase = data.filterPhase;
+        }
+        if (typeof data.filterBaggage === 'string' && data.filterBaggage) {
+          appState.filterBaggage = sanitizeId(data.filterBaggage, 'all');
+        }
+        if (['all', 'todo', 'done'].includes(data.filterStatus)) {
+          appState.filterStatus = data.filterStatus;
+        }
+        if (data.collapsedSections && typeof data.collapsedSections === 'object' && !Array.isArray(data.collapsedSections)) {
+          const cleanCollapsed = {};
+          for (const [k, v] of Object.entries(data.collapsedSections)) {
+            if (v === true && typeof k === 'string' && /^[a-z]+:[a-zA-Z0-9_:-]+$/.test(k)) {
+              cleanCollapsed[k] = true;
+            }
+          }
+          appState.collapsedSections = cleanCollapsed;
+        }
+        ensureValidActiveTrip();
+        saveState(true, true);
+        _suppressCloudSync = false;
+      },
+      onSyncError: (err) => {
+        cloudState.syncStatus = 'error';
+        if (err?.code === 'permission-denied') {
+          cloudState.syncError = 'Accès Firestore refusé (vérifiez que votre e-mail est bien vérifié et autorisé).';
+        } else {
+          cloudState.syncError = err?.message || 'Erreur de synchronisation Firestore';
+        }
+        majStatutSyncModal();
+      }
+    });
   }
 
-  function setAuthError(msg = '') {
-    const errEl = document.getElementById('authErrorMsg');
-    if (!errEl) return;
-    if (msg) {
-      errEl.textContent = msg;
-      errEl.style.display = 'block';
+  async function forcerSyncCloud() {
+    const fb = window.ValiseFirebase;
+    if (!fb || !fb.estConnecteFirebase()) throw new Error('Non connecté au Cloud.');
+    cloudState.syncStatus = 'syncing';
+    cloudState.syncError = null;
+    try {
+      await fb.syncAllUserDataToFirestore(appState);
+      cloudState.syncStatus = 'synced';
+      cloudState.lastSyncedAt = new Date().toISOString();
+      const user = fb.getFirebaseUser();
+      if (user?.uid) localStorage.setItem(LAST_UID_KEY, user.uid);
+      return true;
+    } catch (err) {
+      cloudState.syncStatus = 'error';
+      cloudState.syncError = err?.code === 'permission-denied'
+        ? 'Accès Firestore refusé (vérifiez que votre e-mail est bien vérifié et autorisé).'
+        : (err?.message || 'Erreur de synchronisation Firestore');
+      throw new Error(cloudState.syncError);
+    }
+  }
+
+  function majStatutSyncModal() {
+    const statusEl = document.getElementById('auth-sync-status');
+    const syncErrEl = document.getElementById('auth-sync-error-msg');
+    const unverifiedBox = document.getElementById('auth-unverified-box');
+    const user = window.ValiseFirebase?.getFirebaseUser?.();
+    if (unverifiedBox) {
+      unverifiedBox.style.display = (user && !user.emailVerified) ? 'block' : 'none';
+    }
+    if (!statusEl) return;
+
+    if (cloudState.syncStatus === 'syncing') {
+      statusEl.textContent = 'Synchronisation en cours…';
+      statusEl.style.color = 'var(--solar)';
+    } else if (cloudState.syncStatus === 'error') {
+      statusEl.textContent = 'Erreur de synchronisation';
+      statusEl.style.color = 'var(--danger)';
+      if (syncErrEl && cloudState.syncError) {
+        syncErrEl.textContent = cloudState.syncError;
+        syncErrEl.style.display = 'block';
+      }
+    } else if (cloudState.initialSyncDone || cloudState.syncStatus === 'synced') {
+      const nbTrips = (appState.trips || []).length;
+      statusEl.textContent = `Synchronisé (${nbTrips} voyage${nbTrips > 1 ? 's' : ''})`;
+      statusEl.style.color = 'var(--success)';
+      if (syncErrEl) syncErrEl.style.display = 'none';
     } else {
-      errEl.textContent = '';
-      errEl.style.display = 'none';
+      statusEl.textContent = 'Connexion au Cloud…';
+      statusEl.style.color = 'var(--text-muted)';
     }
   }
 
-  function setAuthMode(mode) {
-    authMode = mode === 'signup' ? 'signup' : 'login';
-    const tabLogin = document.getElementById('authTabLogin');
-    const tabSignup = document.getElementById('authTabSignup');
-    const nameGroup = document.getElementById('authNameGroup');
-    const submitBtn = document.getElementById('btnAuthSubmit');
-    const forgotBtn = document.getElementById('btnAuthForgot');
-    const pwdInput = document.getElementById('authPasswordInput');
+  function ouvrirModalAuth() {
+    const errEl = document.getElementById('auth-error-msg');
+    if (errEl) errEl.style.display = 'none';
+    const syncErrEl = document.getElementById('auth-sync-error-msg');
+    if (syncErrEl) syncErrEl.style.display = 'none';
 
-    if (tabLogin) {
-      tabLogin.classList.toggle('active', authMode === 'login');
-      tabLogin.setAttribute('aria-selected', String(authMode === 'login'));
+    const user = window.ValiseFirebase?.getFirebaseUser?.();
+    const loggedOutPanel = document.getElementById('auth-logged-out-panel');
+    const loggedInPanel = document.getElementById('auth-logged-in-panel');
+
+    if (user && loggedOutPanel && loggedInPanel) {
+      loggedOutPanel.style.display = 'none';
+      loggedInPanel.style.display = 'block';
+      const emailEl = document.getElementById('auth-connected-email');
+      if (emailEl) emailEl.textContent = user.email || user.displayName || user.uid;
+      majStatutSyncModal();
+    } else if (loggedOutPanel && loggedInPanel) {
+      loggedOutPanel.style.display = 'block';
+      loggedInPanel.style.display = 'none';
     }
-    if (tabSignup) {
-      tabSignup.classList.toggle('active', authMode === 'signup');
-      tabSignup.setAttribute('aria-selected', String(authMode === 'signup'));
-    }
-    if (nameGroup) nameGroup.style.display = authMode === 'signup' ? 'block' : 'none';
-    if (submitBtn) submitBtn.textContent = authMode === 'signup' ? (authLinkingGuestEmail ? 'Lier mon e-mail' : 'Créer mon compte') : 'Se connecter';
-    if (forgotBtn) forgotBtn.style.display = authMode === 'login' ? 'inline-block' : 'none';
-    if (pwdInput) pwdInput.setAttribute('autocomplete', authMode === 'signup' ? 'new-password' : 'current-password');
-    setAuthError('');
+
+    document.getElementById('modal-auth')?.classList.add('open');
   }
 
-  function getSyncStatusMeta(status) {
-    switch (status) {
-      case 'synced': return { dotClass: 'sync-dot-synced', text: 'Synchronisé dans le cloud' };
-      case 'syncing': return { dotClass: 'sync-dot-syncing', text: 'Synchronisation...' };
-      case 'offline': return { dotClass: 'sync-dot-offline', text: 'Hors-ligne (sauvegarde locale active)' };
-      case 'error': return { dotClass: 'sync-dot-error', text: 'Erreur de synchronisation' };
-      default: return { dotClass: 'sync-dot-local', text: 'Mode local (appareil uniquement)' };
+  function fermerModalAuth() {
+    document.getElementById('modal-auth')?.classList.remove('open');
+  }
+
+  async function synchroniserMaintenant() {
+    const btn = document.getElementById('btn-force-sync');
+    const syncErrEl = document.getElementById('auth-sync-error-msg');
+    if (syncErrEl) syncErrEl.style.display = 'none';
+    if (btn) btn.disabled = true;
+    majStatutSyncModal();
+    try {
+      await forcerSyncCloud();
+      majStatutSyncModal();
+      showToast('Synchronisation terminée');
+    } catch (e) {
+      majStatutSyncModal();
+      if (syncErrEl) {
+        syncErrEl.textContent = e?.message || 'Impossible de synchroniser.';
+        syncErrEl.style.display = 'block';
+      }
+    } finally {
+      if (btn) btn.disabled = false;
     }
   }
 
-  function updateAuthUI(snapshot = window.ValiseCloud?.getSnapshot?.()) {
-    const snap = snapshot || { configured: false, user: null, syncStatus: 'local' };
-    const user = snap.user;
-    const syncMeta = getSyncStatusMeta(snap.syncStatus);
-
-    // Header pill
-    const headerAvatar = document.getElementById('headerAccountAvatar');
-    const headerLabel = document.getElementById('headerAccountLabel');
-    const headerDot = document.getElementById('headerSyncDot');
-
-    if (headerDot) {
-      headerDot.className = `sync-dot ${syncMeta.dotClass}`;
+  async function soumettreAuthEmail(isRegister) {
+    const email = document.getElementById('auth-email')?.value || '';
+    const pwd = document.getElementById('auth-password')?.value || '';
+    const errEl = document.getElementById('auth-error-msg');
+    if (errEl) errEl.style.display = 'none';
+    try {
+      if (isRegister) {
+        await window.ValiseFirebase.inscriptionEmail(email, pwd);
+        showToast('Compte créé ! Vérifiez votre boîte e-mail.');
+      } else {
+        await window.ValiseFirebase.connexionEmail(email, pwd);
+        showToast('Connecté au Cloud');
+      }
+      fermerModalAuth();
+    } catch (e) {
+      if (errEl) {
+        errEl.textContent = e.message || 'Erreur de connexion.';
+        errEl.style.display = 'block';
+      }
     }
+  }
 
+  async function soumettreAuthGoogle() {
+    const errEl = document.getElementById('auth-error-msg');
+    if (errEl) errEl.style.display = 'none';
+    try {
+      await window.ValiseFirebase.connexionGoogle();
+      fermerModalAuth();
+      showToast('Connecté avec Google');
+    } catch (e) {
+      if (errEl) {
+        errEl.textContent = e.message || 'Erreur de connexion Google.';
+        errEl.style.display = 'block';
+      }
+    }
+  }
+
+  async function deconnexionCloud() {
+    if (!confirm('Se déconnecter du compte Cloud ?')) return;
+    await window.ValiseFirebase?.deconnexionFirebase?.();
+    reinitialiserEtatCloud();
+    fermerModalAuth();
+    render();
+    showToast('Déconnecté (vos données locales sont conservées)');
+  }
+
+  async function renvoyerVerificationCloud() {
+    const msgEl = document.getElementById('auth-unverified-msg');
+    const btn = document.getElementById('btn-resend-verif');
+    if (btn) btn.disabled = true;
+    try {
+      const sent = await window.ValiseFirebase.renvoyerEmailVerification();
+      if (msgEl) {
+        msgEl.textContent = sent
+          ? 'E-mail de vérification envoyé ! Vérifiez votre boîte de réception (et les spams), puis cliquez sur « J\'ai vérifié ».'
+          : 'Votre adresse est déjà vérifiée.';
+      }
+    } catch (e) {
+      if (msgEl) msgEl.textContent = e?.message || 'Impossible d\'envoyer l\'e-mail de vérification.';
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function verifierStatutEmailCloud() {
+    const msgEl = document.getElementById('auth-unverified-msg');
+    const btn = document.getElementById('btn-check-verif');
+    if (btn) btn.disabled = true;
+    try {
+      const user = await window.ValiseFirebase.rechargerUtilisateurFirebase();
+      if (user?.emailVerified) {
+        await user.getIdToken(true);
+        await activerSyncCloud();
+        majStatutSyncModal();
+        render();
+        showToast('Adresse e-mail vérifiée ! Synchronisation activée.');
+      } else if (msgEl) {
+        msgEl.textContent = 'Adresse toujours non vérifiée. Cliquez d\'abord sur le lien reçu par e-mail.';
+      }
+    } catch (e) {
+      if (msgEl) msgEl.textContent = e?.message || 'Erreur lors de la vérification.';
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function majBoutonHeaderAuth(user) {
+    const btnAuth = document.getElementById('btn-auth-header');
+    if (!btnAuth) return;
     if (user) {
-      const displayName = user.isAnonymous ? 'Invité' : (user.displayName || user.email || 'Compte');
-      if (headerLabel) headerLabel.textContent = displayName;
-      if (headerAvatar) {
-        if (user.photoURL) {
-          headerAvatar.innerHTML = `<img src="${escapeHtml(user.photoURL)}" alt="">`;
-        } else {
-          const initial = escapeHtml((displayName[0] || 'U').toUpperCase());
-          headerAvatar.textContent = initial;
-        }
-      }
+      const label = (user.email || user.displayName || 'Cloud').split('@')[0];
+      btnAuth.innerHTML = SVG_USER;
+      const textSpan = document.createElement('span');
+      textSpan.className = 'btn-text account-label';
+      textSpan.textContent = label;
+      btnAuth.appendChild(textSpan);
+      btnAuth.classList.add('is-authenticated');
+      btnAuth.title = `Connecté : ${user.email || user.uid}`;
     } else {
-      if (headerLabel) headerLabel.textContent = 'Invité';
-      if (headerAvatar) {
-        headerAvatar.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-      }
+      btnAuth.innerHTML = `${SVG_CLOUD}<span class="btn-text account-label">Connexion</span>`;
+      btnAuth.classList.remove('is-authenticated');
+      btnAuth.title = 'Se connecter au Cloud';
     }
-
-    // Modal views
-    const unconfiguredBanner = document.getElementById('authUnconfiguredBanner');
-    const signedOutView = document.getElementById('authSignedOutView');
-    const signedInView = document.getElementById('authSignedInView');
-
-    if (unconfiguredBanner) {
-      unconfiguredBanner.style.display = snap.configured ? 'none' : 'block';
-    }
-
-    const showSignedIn = Boolean(user) && !authLinkingGuestEmail;
-    if (signedOutView) signedOutView.style.display = showSignedIn ? 'none' : 'block';
-    if (signedInView) signedInView.style.display = showSignedIn ? 'block' : 'none';
-
-    if (showSignedIn && user) {
-      const profileAvatar = document.getElementById('authProfileAvatar');
-      const profileName = document.getElementById('authProfileName');
-      const profileEmail = document.getElementById('authProfileEmail');
-      const modalDot = document.getElementById('authModalSyncDot');
-      const statusText = document.getElementById('authSyncStatusText');
-      const upgradeBox = document.getElementById('authUpgradeGuestBox');
-
-      const name = user.isAnonymous ? 'Compte invité' : (user.displayName || 'Voyageur');
-      if (profileName) profileName.textContent = name;
-      if (profileEmail) profileEmail.textContent = user.isAnonymous ? 'Synchronisation temporaire sur cet appareil' : (user.email || '');
-      if (profileAvatar) {
-        if (user.photoURL) {
-          profileAvatar.innerHTML = `<img src="${escapeHtml(user.photoURL)}" alt="">`;
-        } else {
-          profileAvatar.textContent = (name[0] || 'V').toUpperCase();
-        }
-      }
-      if (modalDot) modalDot.className = `sync-dot ${syncMeta.dotClass}`;
-      if (statusText) statusText.textContent = syncMeta.text;
-      if (upgradeBox) upgradeBox.style.display = user.isAnonymous ? 'block' : 'none';
-    }
-  }
-
-  function openAuthModal() {
-    authLinkingGuestEmail = false;
-    setAuthError('');
-    updateAuthUI();
-    document.getElementById('authModal')?.classList.add('open');
-  }
-
-  function closeAuthModal() {
-    authLinkingGuestEmail = false;
-    document.getElementById('authModal')?.classList.remove('open');
   }
 
   function initAuthModule() {
-    if (window.ValiseCloud && typeof window.ValiseCloud.onChange === 'function') {
-      window.ValiseCloud.onChange(updateAuthUI);
-    }
+    document.getElementById('btn-auth-login')?.addEventListener('click', () => soumettreAuthEmail(false));
+    document.getElementById('btn-auth-register')?.addEventListener('click', () => soumettreAuthEmail(true));
+    document.getElementById('btn-auth-google')?.addEventListener('click', soumettreAuthGoogle);
+    document.getElementById('btn-force-sync')?.addEventListener('click', synchroniserMaintenant);
+    document.getElementById('btn-auth-logout')?.addEventListener('click', deconnexionCloud);
+    document.getElementById('btn-resend-verif')?.addEventListener('click', renvoyerVerificationCloud);
+    document.getElementById('btn-check-verif')?.addEventListener('click', verifierStatutEmailCloud);
 
-    document.getElementById('authTabLogin')?.addEventListener('click', () => setAuthMode('login'));
-    document.getElementById('authTabSignup')?.addEventListener('click', () => setAuthMode('signup'));
-
-    document.getElementById('btnAuthGoogle')?.addEventListener('click', async () => {
-      if (!window.ValiseCloud?.isConfigured()) {
-        setAuthError('Configurez Firebase dans firebase-config.js pour utiliser la connexion Google.');
-        return;
-      }
-      setAuthError('');
-      try {
-        const user = await window.ValiseCloud.signInWithGoogle();
-        if (user) {
-          closeAuthModal();
-          showToast(`Bienvenue ${user.displayName || ''} !`);
-        }
-      } catch (err) {
-        setAuthError(err.message || 'Erreur de connexion Google.');
+    document.getElementById('auth-password')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        soumettreAuthEmail(false);
       }
     });
 
-    document.getElementById('authEmailForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!window.ValiseCloud?.isConfigured()) {
-        setAuthError('Configurez Firebase dans firebase-config.js pour activer les comptes.');
-        return;
-      }
-      const email = document.getElementById('authEmailInput')?.value?.trim() || '';
-      const password = document.getElementById('authPasswordInput')?.value || '';
-      const displayName = document.getElementById('authNameInput')?.value?.trim() || '';
-      const submitBtn = document.getElementById('btnAuthSubmit');
-
-      setAuthError('');
-      if (submitBtn) submitBtn.disabled = true;
-      try {
-        let user;
-        if (authMode === 'signup') {
-          user = await window.ValiseCloud.signUpWithEmail(email, password, displayName);
-          showToast('Compte créé et synchronisé !');
+    const attachObserver = () => {
+      if (!window.ValiseFirebase?.observerAuth) return false;
+      window.ValiseFirebase.observerAuth(async (user) => {
+        majBoutonHeaderAuth(user);
+        if (user) {
+          await activerSyncCloud();
         } else {
-          user = await window.ValiseCloud.signInWithEmail(email, password);
-          showToast(`Connecté en tant que ${user.displayName || user.email}`);
+          reinitialiserEtatCloud();
         }
-        authLinkingGuestEmail = false;
-        closeAuthModal();
-      } catch (err) {
-        setAuthError(err.message || 'Erreur lors de la connexion.');
-      } finally {
-        if (submitBtn) submitBtn.disabled = false;
-      }
-    });
-
-    document.getElementById('btnAuthForgot')?.addEventListener('click', async () => {
-      if (!window.ValiseCloud?.isConfigured()) return;
-      const email = document.getElementById('authEmailInput')?.value?.trim() || '';
-      if (!email) {
-        setAuthError('Saisissez votre adresse e-mail ci-dessus puis cliquez sur Mot de passe oublié.');
-        return;
-      }
-      setAuthError('');
-      try {
-        await window.ValiseCloud.sendPasswordReset(email);
-        showToast('E-mail de réinitialisation envoyé !');
-      } catch (err) {
-        setAuthError(err.message || 'Impossible d’envoyer l’e-mail.');
-      }
-    });
-
-    document.getElementById('btnAuthGuest')?.addEventListener('click', async () => {
-      if (window.ValiseCloud?.isConfigured()) {
-        try {
-          await window.ValiseCloud.signInAsGuest();
-        } catch (e) {}
-      }
-      closeAuthModal();
-      showToast('Mode hors-ligne / invité activé');
-    });
-
-    document.getElementById('btnUpgradeGoogle')?.addEventListener('click', async () => {
-      try {
-        const user = await window.ValiseCloud.signInWithGoogle();
-        if (user) {
-          updateAuthUI();
-          showToast('Compte lié à Google !');
-        }
-      } catch (err) {
-        showToast(err.message || 'Erreur lors de la liaison Google');
-      }
-    });
-
-    document.getElementById('btnUpgradeEmail')?.addEventListener('click', () => {
-      authLinkingGuestEmail = true;
-      setAuthMode('signup');
-      updateAuthUI();
-    });
-
-    document.getElementById('btnForceSync')?.addEventListener('click', async () => {
-      if (!window.ValiseCloud) return;
-      try {
-        await window.ValiseCloud.forceSync(appState);
-        showToast('Synchronisation terminée ✔');
-      } catch (err) {
-        showToast(err.message || 'Impossible de synchroniser');
-      }
-    });
-
-    document.getElementById('btnSignOut')?.addEventListener('click', () => {
-      showConfirm(
-        'Se déconnecter',
-        'Vos données restent sauvegardées dans votre compte cloud. Elles seront masquées sur cet appareil après déconnexion.',
-        'Se déconnecter',
-        async () => {
-          try {
-            await window.ValiseCloud?.signOut();
-            closeAuthModal();
-            showToast('Vous êtes déconnecté');
-          } catch (err) {
-            showToast(err.message || 'Erreur lors de la déconnexion');
-          }
-        }
-      );
-    });
-
-    updateAuthUI();
-  }
-
-  window.ValiseApp = {
-    onCloudInitialData(user, cloudData) {
-      activeCloudUser = user;
-      const guestState = loadGuestLocalState();
-      const hasGuestData = Boolean(guestState && (guestState.trips.length > 0 || guestState.customTemplates.length > 0));
-      const cleanCloud = cloudData ? sanitizeImportedState(cloudData) : null;
-      const hasCloudData = Boolean(cleanCloud && (cleanCloud.trips.length > 0 || cleanCloud.customTemplates.length > 0));
-
-      let stateToWriteBack = null;
-
-      if (!hasCloudData && hasGuestData) {
-        // Première connexion : migration automatique des voyages locaux vers le compte
-        appState = guestState;
-        clearGuestLocalStorageAfterMigration();
-        saveState(true, true);
-        stateToWriteBack = appState;
-        showToast(`${guestState.trips.length} voyage(s) local(aux) synchronisé(s) avec votre compte !`);
-      } else if (hasCloudData && hasGuestData) {
-        // Fusion intelligente des voyages créés hors-ligne avant connexion
-        const { state: merged, addedTrips, addedTemplates } = mergeStates(cleanCloud, guestState);
-        appState = merged;
-        clearGuestLocalStorageAfterMigration();
-        saveState(true, true);
-        if (addedTrips > 0 || addedTemplates > 0) {
-          stateToWriteBack = appState;
-          showToast(`${addedTrips} voyage(s) local(aux) fusionné(s) avec votre compte !`);
-        }
-      } else if (cleanCloud) {
-        appState = cleanCloud;
-        saveState(true, true);
-      } else {
-        // Nouveau compte vide sans données locales : on charge un éventuel cache utilisateur ou état vide
-        loadState();
+        majStatutSyncModal();
         render();
-        stateToWriteBack = appState;
-      }
+      });
+      return true;
+    };
 
-      updateAuthUI();
-      return stateToWriteBack;
-    },
-
-    onCloudRemoteUpdate(user, cloudData) {
-      if (!activeCloudUser || activeCloudUser.uid !== user.uid) return;
-      const clean = sanitizeImportedState(cloudData);
-      if (!clean) return;
-      appState = clean;
-      saveState(true, true);
-    },
-
-    onCloudSignedOut() {
-      if (!activeCloudUser) return;
-      activeCloudUser = null;
-      loadState();
-      render();
-      updateAuthUI();
+    if (!attachObserver()) {
+      window.addEventListener('load', () => attachObserver(), { once: true });
     }
-  };
+  }
 })();
