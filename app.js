@@ -1844,6 +1844,10 @@
       closeMoreMenu();
       checkForAppUpdates(true);
     });
+    document.getElementById('btnOtherApps')?.addEventListener('click', () => {
+      closeMoreMenu();
+      openOtherAppsModal();
+    });
 
     // Update Modal
     document.getElementById('updateDismissBtn')?.addEventListener('click', dismissUpdate);
@@ -4331,5 +4335,35 @@
     if (!attachObserver()) {
       window.addEventListener('load', () => attachObserver(), { once: true });
     }
+  }
+
+  function openOtherAppsModal() {
+    const apps = [
+      { nom: "L'Affinoir", desc: 'Charcuterie, salaisons & cave d\'affinage', url: 'https://quentinv1.github.io/app-charcuterie/' },
+      { nom: 'Pêche France', desc: 'Réglementation, mailles, cartes & carnet de prises', url: 'https://quentinv1.github.io/app-peche/' },
+      { nom: 'App Voyage', desc: 'Planificateur d\'itinéraire, carte & carnet de voyage', url: 'https://quentinv1.github.io/app-voyage/' },
+      { nom: 'Budget Prévisionnel', desc: 'Budget du foyer, provisions & projections', url: 'https://quentinv1.github.io/budget-previsionnel/' },
+      { nom: 'Cave à vin', desc: 'Stock de bouteilles, apogée & dégustations', url: 'https://quentinv1.github.io/cave-a-vin/' },
+      { nom: 'Livre de recettes', desc: 'Recettes, planning semaine & liste de courses', url: 'https://quentinv1.github.io/livre-recettes/' },
+      { nom: 'Suivi Chasse', desc: 'Carnet de sorties, carte & album trophées', url: 'https://quentinv1.github.io/suivi-chasse/' },
+      { nom: 'Travaux Maison', desc: 'Plan 2D/3D, courses, tâches & entretien', url: 'https://quentinv1.github.io/travaux-maison/' },
+    ];
+    const listEl = document.getElementById('otherAppsList');
+    const modal = document.getElementById('otherAppsModal');
+    if (!listEl || !modal) return;
+    listEl.innerHTML = apps.map(app => `
+      <a href="${escapeHtml(app.url)}" target="_blank" rel="noopener noreferrer"
+         style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-md); text-decoration:none; color:var(--text); background:var(--bg-subtle);">
+        <div style="min-width:0;">
+          <div style="font-weight:700; font-size:0.88rem;">${escapeHtml(app.nom)}</div>
+          <div style="font-size:0.76rem; color:var(--text-muted);">${escapeHtml(app.desc)}</div>
+        </div>
+        <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:600; color:var(--accent); white-space:nowrap;">
+          Ouvrir
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </span>
+      </a>
+    `).join('');
+    modal.classList.add('open');
   }
 })();
