@@ -1,8 +1,10 @@
-const CACHE_NAME = 'valise-app-v6';
+const CACHE_NAME = 'valise-app-v7';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './firebase-config.js',
+  './firebase-sync.js',
   './data.js',
   './app.js',
   './manifest.webmanifest',

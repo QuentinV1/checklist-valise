@@ -41,6 +41,9 @@
   let currentRegionFilter = 'all';
   let confirmCallback = null;
   let latestReleaseData = null;
+  let activeCloudUser = null;
+  let authMode = 'login'; // 'login' | 'signup'
+  let authLinkingGuestEmail = false;
 
   function createDefaultParty() {
     return {
@@ -62,6 +65,11 @@
   }
 
   // === UTILITAIRES & VALIDATION ===
+  function formatWeightKg(grams, decimals = 2) {
+    const factor = Math.pow(10, decimals);
+    return (Math.round((((Number(grams) || 0) / 1000) + Number.EPSILON) * factor) / factor).toFixed(decimals);
+  }
+
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>'"]/g, tag => ({
       '&': '&amp;',
@@ -273,6 +281,13 @@
     return Object.keys(baggages)[0] || 'porte';
   }
 
+  function inferLegacyPerson(raw) {
+    if (typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[raw?.person]) return raw.person;
+    if (raw?.cat === 'pet') return 'pet';
+    if (raw?.cat === 'baby') return 'child';
+    return 'shared';
+  }
+
   function sanitizeItem(raw, baggages, usedIds) {
     if (!raw || typeof raw !== 'object') return null;
     const name = sanitizeText(raw.name, 160);
@@ -299,6 +314,8 @@
       weight: Math.max(0, Math.min(100000, Math.round(Number(raw.weight) || 0))),
       iata: (raw.iata === 'cabin-only' || raw.iata === 'hold-only') ? raw.iata : '',
       phase,
+      person: inferLegacyPerson(raw),
+      custom: Boolean(raw.custom || String(raw.id || '').startsWith('custom_')),
       checked: Boolean(raw.checked)
     };
   }
@@ -462,7 +479,20 @@
     const items = [];
     const seenNames = new Set();
 
-    const add = (name, cat, bag, qty = 1, weight = 0, iata = '', phase = 'phase_pack', note = '') => {
+    const inferGeneratedPerson = (name, cat, explicitPerson) => {
+      if (explicitPerson && typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[explicitPerson]) {
+        return explicitPerson;
+      }
+      if (cat === 'pet') return 'pet';
+      if (cat === 'baby') return 'child';
+      if (/ado|enfant|bébé|garçon|fille/i.test(name)) return 'child';
+      if (cat === 'clothes') return 'adult';
+      if (cat === 'hygiene' && /brosse à dents|déodorant|rasoir|protections|maquillage|épiler|coupe-ongles|crème hydratante|après-rasage/i.test(name)) return 'adult';
+      if (cat === 'health' && /pilule/i.test(name)) return 'adult';
+      return 'shared';
+    };
+
+    const add = (name, cat, bag, qty = 1, weight = 0, iata = '', phase = 'phase_pack', note = '', person = '') => {
       const norm = name.toLowerCase().trim();
       if (seenNames.has(norm)) return;
       seenNames.add(norm);
@@ -476,6 +506,8 @@
         weight,
         iata: isPlane ? iata : '',
         phase,
+        person: inferGeneratedPerson(name, cat, person),
+        custom: false,
         checked: false
       });
     };
@@ -517,7 +549,10 @@
 
     if (totalPets > 0) {
       if (p.pets.takesPet) {
-        add(`Passeport européen (${petsDesc}) + Vaccin rage à jour + Puce électronique`, 'pet', 'daypack', totalPets, 30, 'cabin-only', 'phase_6months');
+        const petDocLabel = country.region === 'Europe'
+          ? 'Passeport européen'
+          : 'Certificat sanitaire international / Passeport animal';
+        add(`${petDocLabel} (${petsDesc}) + Vaccin rage à jour + Puce électronique`, 'pet', 'daypack', totalPets, 30, 'cabin-only', 'phase_6months');
         add(`Réserver le titre de transport pour ${totalPets > 1 ? 'les animaux' : "l'animal"} (${petsDesc}) (train/avion/ferry)`, 'pet', 'daypack', totalPets, 10, '', 'phase_6months');
         add("Confirmer avec le logement l'accueil des animaux", 'pet', 'daypack', 1, 0, '', 'phase_6months');
       } else {
@@ -644,11 +679,11 @@
       add('Pyjamas enfant', 'baby', 'soute', 2 * totalChildren, 180, '', 'phase_pack');
       add("Doudou / Peluche préférée de l'enfant", 'baby', 'daypack', totalChildren, 100, '', 'phase_pack');
       add('Brosse à dents enfant + Dentifrice junior', 'baby', 'cabine', totalChildren, 70, '', 'phase_pack');
-      add('Cahier de coloriage, feutres & livres de jeux', 'practical', 'daypack', totalChildren, 250, '', 'phase_pack');
-      add('Gourde enfant étanche', 'practical', 'daypack', totalChildren, 150, '', 'phase_pack');
-      add('Crème solaire enfant très haute protection SPF 50+', 'health', 'soute', 1, 150, '', 'phase_pack');
+      add('Cahier de coloriage, feutres & livres de jeux', 'practical', 'daypack', totalChildren, 250, '', 'phase_pack', '', 'child');
+      add('Gourde enfant étanche', 'practical', 'daypack', totalChildren, 150, '', 'phase_pack', '', 'child');
+      add('Crème solaire enfant très haute protection SPF 50+', 'health', 'soute', 1, 150, '', 'phase_pack', '', 'child');
       if (transport === 'voiture') {
-        add('Réhausseur auto / Siège enfant adapté', 'practical', 'soute', totalChildren, 2000, '', 'phase_pack');
+        add('Réhausseur auto / Siège enfant adapté', 'practical', 'soute', totalChildren, 2000, '', 'phase_pack', '', 'child');
       }
     }
 
@@ -662,11 +697,11 @@
       add('Sous-vêtements, brassières & collants ado fille', 'clothes', 'soute', q * p.teensGirls, 70, '', 'phase_pack');
     }
     if (totalTeens > 0) {
-      add('Smartphone + Chargeur personnel + Câble long', 'tech', 'daypack', totalTeens, 200, '', 'phase_pack');
-      add('Écouteurs sans fil ou casque audio ado', 'tech', 'daypack', totalTeens, 180, 'cabin-only', 'phase_pack');
-      add('Batterie externe individuelle (Powerbank)', 'tech', 'daypack', totalTeens, 220, 'cabin-only', 'phase_pack');
-      add('Trousse de toilette ado (déodorant, soins visage)', 'hygiene', 'cabine', totalTeens, 200, '', 'phase_pack');
-      add("Carte d'identité / Passeport ado + Carte étudiant/transport", 'admin', 'daypack', totalTeens, 30, 'cabin-only', 'phase_pack');
+      add('Smartphone + Chargeur personnel + Câble long', 'tech', 'daypack', totalTeens, 200, '', 'phase_pack', '', 'child');
+      add('Écouteurs sans fil ou casque audio ado', 'tech', 'daypack', totalTeens, 180, 'cabin-only', 'phase_pack', '', 'child');
+      add('Batterie externe individuelle (Powerbank)', 'tech', 'daypack', totalTeens, 220, 'cabin-only', 'phase_pack', '', 'child');
+      add('Trousse de toilette ado (déodorant, soins visage)', 'hygiene', 'cabine', totalTeens, 200, '', 'phase_pack', '', 'child');
+      add("Carte d'identité / Passeport ado + Carte étudiant/transport", 'admin', 'daypack', totalTeens, 30, 'cabin-only', 'phase_pack', '', 'child');
     }
 
     // --- Animaux (si voyage avec nous) ---
@@ -934,8 +969,39 @@
   }
 
   // === STATE & LOCALSTORAGE ===
-  function loadState() {
+  function getActiveStorageKey() {
+    return activeCloudUser?.uid ? `valise_user_data_${activeCloudUser.uid}` : STORAGE_KEY;
+  }
+
+  function createEmptyAppState() {
+    return {
+      trips: [],
+      activeTripId: null,
+      customTemplates: [],
+      viewMode: 'chrono',
+      filterPhase: 'all',
+      filterBaggage: 'all',
+      filterStatus: 'all',
+      searchQuery: '',
+      collapsedSections: {}
+    };
+  }
+
+  function loadGuestLocalState() {
     const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY_V3) || localStorage.getItem(LEGACY_STORAGE_KEY_V2);
+    if (!saved) return null;
+    try {
+      return sanitizeImportedState(JSON.parse(saved));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function loadState() {
+    const key = getActiveStorageKey();
+    const saved = activeCloudUser?.uid
+      ? localStorage.getItem(key)
+      : (localStorage.getItem(key) || localStorage.getItem(LEGACY_STORAGE_KEY_V3) || localStorage.getItem(LEGACY_STORAGE_KEY_V2));
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -948,16 +1014,18 @@
         console.warn('Erreur lecture cache local:', e);
       }
     }
-    appState.trips = [];
-    appState.activeTripId = null;
+    appState = createEmptyAppState();
   }
 
-  function saveState(shouldRender = true) {
+  function saveState(shouldRender = true, skipCloudPush = false) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      localStorage.setItem(getActiveStorageKey(), JSON.stringify(appState));
     } catch (e) {
       console.warn('Erreur sauvegarde localStorage:', e);
       showToast('Espace de stockage local saturé');
+    }
+    if (!skipCloudPush && activeCloudUser?.uid && window.ValiseCloud) {
+      window.ValiseCloud.pushState(appState);
     }
     if (shouldRender) render();
   }
@@ -987,9 +1055,14 @@
     const container = document.getElementById('toastContainer');
     if (!container) return;
 
-    const { actionLabel = '', onAction = null, duration = actionLabel ? 4200 : 2600 } = options;
+    const { actionLabel = '', onAction = null, duration = actionLabel ? 4200 : 2600, replaceId = '' } = options;
+    if (replaceId) {
+      container.querySelectorAll(`[data-toast-id="${CSS.escape(replaceId)}"]`).forEach(old => old.remove());
+    }
+
     const el = document.createElement('div');
     el.className = 'toast';
+    if (replaceId) el.dataset.toastId = replaceId;
 
     const msgSpan = document.createElement('span');
     msgSpan.textContent = message;
@@ -1044,7 +1117,12 @@
     loadState();
     initFormComponents();
     initListeners();
+    initAuthModule();
     render();
+
+    if (window.ValiseCloud && typeof window.ValiseCloud.init === 'function') {
+      window.ValiseCloud.init();
+    }
 
     if (!isNativeAndroidApp() && window.location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -1360,7 +1438,7 @@
       const isSelected = selectedCountryKey === key;
       return `
         <button type="button" class="country-picker-item ${isSelected ? 'selected' : ''}" data-country-key="${escapeHtml(key)}">
-          <span class="country-item-flag">${c.flag}</span>
+          <span class="country-item-flag">${getCountryFlagSvg(key)}</span>
           <div class="country-item-info">
             <span class="country-item-name">${escapeHtml(c.name)}</span>
             <span class="country-item-meta">${escapeHtml(c.region)} · ${escapeHtml(c.currency)} · ${escapeHtml(c.plug)}</span>
@@ -1375,7 +1453,7 @@
     selectedCountryKey = COUNTRIES[key] ? key : 'france';
     const c = COUNTRIES[selectedCountryKey];
     document.getElementById('tripCountrySelect').value = selectedCountryKey;
-    document.getElementById('selectedCountryFlag').textContent = c.flag;
+    document.getElementById('selectedCountryFlag').innerHTML = getCountryFlagSvg(key);
     document.getElementById('selectedCountryName').textContent = c.name;
     document.getElementById('selectedCountryMeta').textContent = `${c.region} · Prise ${c.plug} · ${c.currency}`;
     closeCountryPickerModal();
@@ -1427,6 +1505,11 @@
   function initListeners() {
     // Header & More Menu
     document.getElementById('btnThemeToggle')?.addEventListener('click', toggleTheme);
+    document.getElementById('btnAccount')?.addEventListener('click', openAuthModal);
+    document.getElementById('btnMenuAccount')?.addEventListener('click', () => {
+      closeMoreMenu();
+      openAuthModal();
+    });
     document.getElementById('btnNewTripHeader')?.addEventListener('click', () => openTripModal(null));
     document.getElementById('btnTripSwitcher')?.addEventListener('click', openTripsModal);
     document.getElementById('brandHomeBtn')?.addEventListener('click', (e) => {
@@ -1513,6 +1596,7 @@
         else if (action === 'qty-inc') adjustItemQty(id, 1);
         else if (action === 'qty-dec') adjustItemQty(id, -1);
         else if (action === 'cycle-baggage') cycleItemBaggage(id);
+        else if (action === 'cycle-person') cycleItemPerson(id);
         else if (action === 'fix-iata') fixItemIataConflict(id);
         else if (action === 'toggle-section-check') {
           toggleSectionChecked(actionEl.dataset.sectionType, actionEl.dataset.sectionKey);
@@ -1925,7 +2009,7 @@
     const season = SEASONS[trip.season] || SEASONS.misaison;
     const trans = TRANSPORTS[trip.transport] || TRANSPORTS.avion;
 
-    document.getElementById('heroFlag').textContent = country.flag;
+    document.getElementById('heroFlag').innerHTML = getCountryFlagSvg(trip.countryKey);
     document.getElementById('heroTitle').textContent = trip.name;
 
     const tripDays = Math.max(1, Number(trip.days) || tType.duration || 3);
@@ -1957,7 +2041,7 @@
     const pctGlobal = totalCount > 0 ? Math.round((totalChecked / totalCount) * 100) : 0;
 
     document.getElementById('globalProgressText').textContent = `${totalChecked} / ${totalCount} préparés (${pctGlobal}%)`;
-    document.getElementById('globalWeightText').textContent = `${(getAllWeight(trip) / 1000).toFixed(2)} kg`;
+    document.getElementById('globalWeightText').textContent = `${formatWeightKg(getAllWeight(trip), 2)} kg`;
 
     const fillEl = document.getElementById('globalProgressFill');
     fillEl.style.width = `${pctGlobal}%`;
@@ -2046,8 +2130,8 @@
 
     const weights = calculateWeights(trip);
     const isAll = appState.filterBaggage === 'all';
-    const totalKg = (getAllWeight(trip) / 1000).toFixed(1);
-    const totalCheckedKg = (getAllCheckedWeight(trip) / 1000).toFixed(1);
+    const totalKg = formatWeightKg(getAllWeight(trip), 1);
+    const totalCheckedKg = formatWeightKg(getAllCheckedWeight(trip), 1);
 
     let html = `
       <button type="button" class="bag-pill ${isAll ? 'active' : ''}" data-baggage-filter="all">
@@ -2066,14 +2150,14 @@
 
     for (const [key, bag] of Object.entries(trip.baggages)) {
       const bData = weights[key] || { current: 0, checkedWeight: 0 };
-      const curKg = (bData.current / 1000).toFixed(1);
-      const checkedKg = (bData.checkedWeight / 1000).toFixed(1);
+      const curKg = formatWeightKg(bData.current, 1);
+      const checkedKg = formatWeightKg(bData.checkedWeight, 1);
       const limitKg = (bag.limit / 1000).toFixed(bag.limit % 1000 === 0 ? 0 : 1);
       const pct = bag.limit > 0 ? Math.min(100, Math.round((bData.current / bag.limit) * 100)) : 0;
       const diffGrams = bag.limit - bData.current;
       const marginText = diffGrams >= 0
-        ? `Reste ${(diffGrams / 1000).toFixed(1)} kg`
-        : `+${(Math.abs(diffGrams) / 1000).toFixed(1)} kg !`;
+        ? `Reste ${formatWeightKg(diffGrams, 1)} kg`
+        : `+${formatWeightKg(Math.abs(diffGrams), 1)} kg !`;
       const marginClass = diffGrams >= 0 ? 'ok' : 'over';
 
       let fillClass = '';
@@ -2093,6 +2177,29 @@
           <div class="bag-pill-sub">
             <span>Prêt : ${checkedKg} kg</span>
             <span class="bag-pill-margin ${marginClass}">${marginText}</span>
+          </div>
+        </button>
+      `;
+    }
+
+    const porteData = weights.porte || { current: 0, checkedWeight: 0, count: 0 };
+    if (porteData.count > 0 || appState.filterBaggage === 'porte') {
+      const porteKg = formatWeightKg(porteData.current, 1);
+      const porteCheckedKg = formatWeightKg(porteData.checkedWeight, 1);
+      const portePct = porteData.count > 0 ? Math.round((porteData.checkedCount / porteData.count) * 100) : 0;
+      const isPorteActive = appState.filterBaggage === 'porte';
+      html += `
+        <button type="button" class="bag-pill ${isPorteActive ? 'active' : ''}" data-baggage-filter="porte">
+          <div class="bag-pill-top">
+            <span>Sur soi</span>
+            <span class="bag-pill-weight">${porteKg} kg</span>
+          </div>
+          <div class="bag-pill-bar">
+            <div class="bag-pill-fill" style="width: ${portePct}%"></div>
+          </div>
+          <div class="bag-pill-sub">
+            <span>Prêt : ${porteCheckedKg} kg</span>
+            <span class="bag-pill-margin ok">${porteData.count} art.</span>
           </div>
         </button>
       `;
@@ -2209,6 +2316,8 @@
       renderChronoView(container, filtered, trip, isPlane);
     } else if (appState.viewMode === 'baggage') {
       renderBaggageView(container, filtered, trip, isPlane);
+    } else if (appState.viewMode === 'person') {
+      renderPersonView(container, filtered, trip, isPlane);
     } else {
       renderCategoryView(container, filtered, trip, isPlane);
     }
@@ -2288,10 +2397,12 @@
     let phase = (appState.viewMode === 'chrono' && appState.filterPhase !== 'all') ? appState.filterPhase : 'phase_pack';
     let baggage = appState.filterBaggage !== 'all' ? appState.filterBaggage : getDefaultBaggageKey(trip.baggages);
     let cat = 'practical';
+    let person = 'shared';
 
     if (secType === 'chrono' && CHRONO_PHASES[secKey]) phase = secKey;
     else if (secType === 'bag' && (secKey === 'porte' || trip.baggages[secKey])) baggage = secKey;
     else if (secType === 'cat' && CATEGORIES[secKey]) cat = secKey;
+    else if (secType === 'person' && typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[secKey]) person = secKey;
 
     trip.items.push({
       id: 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
@@ -2300,6 +2411,8 @@
       phase,
       cat,
       baggage,
+      person,
+      custom: true,
       qty: 1,
       weight: 0,
       iata: '',
@@ -2320,6 +2433,7 @@
       if (sectionType === 'chrono') return (item.phase || 'phase_pack') === sectionKey;
       if (sectionType === 'bag') return (item.baggage || 'porte') === sectionKey;
       if (sectionType === 'cat') return (item.cat || 'practical') === sectionKey;
+      if (sectionType === 'person') return (item.person || 'shared') === sectionKey;
       return false;
     });
 
@@ -2492,6 +2606,56 @@
     container.innerHTML = html;
   }
 
+  // 4. Vue par Personne
+  function renderPersonView(container, items, trip, isPlane) {
+    const personOrder = ['adult', 'child', 'pet', 'shared'];
+    const grouped = { adult: [], child: [], pet: [], shared: [] };
+
+    items.forEach(item => {
+      const pKey = (typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[item.person]) ? item.person : 'shared';
+      grouped[pKey].push(item);
+    });
+
+    let html = '';
+    for (const pKey of personOrder) {
+      const list = grouped[pKey] || [];
+      if (list.length === 0) continue;
+
+      const pInfo = PERSON_GROUPS[pKey];
+      const checkedCount = list.filter(i => i.checked).length;
+      const isDone = checkedCount === list.length;
+      const totalGrams = list.reduce((sum, i) => sum + ((i.weight || 0) * (i.qty || 1)), 0);
+      const pWeightKg = (totalGrams / 1000).toFixed(2);
+      const collapseKey = `person:${pKey}`;
+      const isCollapsed = isSectionCollapsed(collapseKey);
+
+      html += `
+        <section class="category-card ${isCollapsed ? 'is-collapsed' : ''}" id="person-sec-${escapeHtml(pKey)}">
+          <div class="category-header" data-collapse-key="${escapeHtml(collapseKey)}" role="button" tabindex="0" aria-expanded="${!isCollapsed}" aria-controls="person-list-${escapeHtml(pKey)}">
+            <div class="category-title">
+              <span class="person-svg-icon" style="color: ${escapeHtml(pInfo.color)}; background: ${escapeHtml(pInfo.badgeBg)};">${pInfo.iconSvg}</span>
+              <span>${escapeHtml(pInfo.label)}</span>
+              <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">· ${pWeightKg} kg</span>
+            </div>
+            <div class="category-header-right">
+              <button type="button" class="section-check-all-btn ${isDone ? 'is-all-done' : ''}" data-action="toggle-section-check" data-section-type="person" data-section-key="${escapeHtml(pKey)}" title="${isDone ? 'Tout décocher' : 'Tout cocher'}" aria-label="${isDone ? 'Tout décocher' : 'Tout cocher'}">
+                ${SVG_CHECK_ALL}
+              </button>
+              <span class="category-count ${isDone ? 'done' : ''}">${checkedCount}/${list.length}</span>
+              ${COLLAPSE_CHEVRON_SVG}
+            </div>
+          </div>
+          <ul class="item-list" id="person-list-${escapeHtml(pKey)}">
+            ${list.map(item => renderItemRow(item, trip, isPlane)).join('')}
+          </ul>
+          ${renderQuickAddRow('person', pKey, `+ Ajouter pour « ${pInfo.label} »...`)}
+        </section>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
   // Rendu d'une ligne d'article
   function renderItemRow(item, trip, isPlane) {
     const safeId = escapeHtml(item.id);
@@ -2521,6 +2685,13 @@
          </span>`
       : '';
 
+    const personKey = (typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[item.person]) ? item.person : 'shared';
+    const personInfo = (typeof PERSON_GROUPS !== 'undefined') ? PERSON_GROUPS[personKey] : null;
+    const showPersonBadge = personInfo && (personKey !== 'shared' || appState.viewMode === 'person');
+    const personBadgeHtml = showPersonBadge
+      ? `<button type="button" class="tag-person-btn" data-action="cycle-person" data-id="${safeId}" title="Changer l'attribution voyageur" style="--person-color: ${escapeHtml(personInfo.color)}; --person-bg: ${escapeHtml(personInfo.badgeBg)}">${escapeHtml(personInfo.shortLabel)}</button>`
+      : '';
+
     return `
       <li class="item-row ${item.checked ? 'checked' : ''} ${conflict ? 'has-iata-conflict' : ''}" id="row-${safeId}">
         <button type="button" class="item-checkbox ${item.checked ? 'checked' : ''}" data-action="toggle-item" data-id="${safeId}" aria-label="Cocher ${escapeHtml(item.name)}">
@@ -2535,6 +2706,7 @@
           <div class="item-sub">
             <button type="button" class="tag-baggage-btn" data-action="cycle-baggage" data-id="${safeId}" title="Changer de bagage">${escapeHtml(bagName)}</button>
             <span class="tag-phase" style="--p-color: ${escapeHtml(phaseInfo.color)}; --p-bg: ${escapeHtml(phaseInfo.badgeBg)}">${escapeHtml(phaseInfo.shortLabel)}</span>
+            ${personBadgeHtml}
             ${iataBadge}
           </div>
         </div>
@@ -2632,6 +2804,20 @@
     showToast(`Déplacé vers « ${nextLabel} »`);
   }
 
+  function cycleItemPerson(id) {
+    const trip = getActiveTrip();
+    const item = trip?.items.find(i => i.id === id);
+    if (!trip || !item || typeof PERSON_GROUPS === 'undefined') return;
+
+    const order = ['shared', 'adult', 'child', 'pet'];
+    const currentIdx = order.indexOf(item.person || 'shared');
+    const nextKey = order[(currentIdx + 1) % order.length];
+    item.person = nextKey;
+
+    saveState();
+    showToast(`Attribué à « ${PERSON_GROUPS[nextKey].label} »`);
+  }
+
   function deleteItem(id) {
     const trip = getActiveTrip();
     if (!trip) return;
@@ -2699,6 +2885,10 @@
     document.getElementById('itemPhase').value = existing
       ? (existing.phase || 'phase_pack')
       : (appState.viewMode === 'chrono' && appState.filterPhase !== 'all' ? appState.filterPhase : 'phase_pack');
+    const personSelect = document.getElementById('itemPerson');
+    if (personSelect) {
+      personSelect.value = existing ? (existing.person || 'shared') : 'shared';
+    }
     document.getElementById('itemCategory').value = existing ? existing.cat : 'practical';
     document.getElementById('itemBaggage').value = existing
       ? existing.baggage
@@ -2724,10 +2914,12 @@
 
     const note = sanitizeText(document.getElementById('itemNote')?.value, 160);
     const editId = document.getElementById('editItemId').value;
+    const personVal = document.getElementById('itemPerson')?.value;
     const payload = {
       name,
       note,
       phase: CHRONO_PHASES[document.getElementById('itemPhase').value] ? document.getElementById('itemPhase').value : 'phase_pack',
+      person: (typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[personVal]) ? personVal : 'shared',
       cat: CATEGORIES[document.getElementById('itemCategory').value] ? document.getElementById('itemCategory').value : 'practical',
       baggage: document.getElementById('itemBaggage').value,
       qty: Math.max(1, Math.min(999, parseInt(document.getElementById('itemQty').value, 10) || 1)),
@@ -2740,7 +2932,7 @@
       if (idx !== -1) trip.items[idx] = { ...trip.items[idx], ...payload };
       showToast('Article mis à jour');
     } else {
-      trip.items.push({ id: 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000), ...payload, checked: false });
+      trip.items.push({ id: 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000), ...payload, custom: true, checked: false });
       showToast('Article ajouté');
     }
 
@@ -2899,6 +3091,14 @@
       const trip = appState.trips.find(t => t.id === editId);
       if (trip) {
         const transportChanged = trip.transport !== transport;
+        const paramsChanged =
+          trip.days !== days ||
+          Boolean(trip.laundry) !== laundry ||
+          trip.countryKey !== countryKey ||
+          trip.season !== season ||
+          JSON.stringify(trip.party) !== JSON.stringify(party) ||
+          JSON.stringify(trip.activities || []) !== JSON.stringify(activities);
+
         trip.name = name;
         trip.countryKey = countryKey;
         trip.tripType = tripType;
@@ -2910,11 +3110,73 @@
         trip.party = party;
         trip.activities = activities;
 
-        const regen = document.getElementById('tripRegenerateItems')?.checked;
-        if (regen) {
+        const applyRecalculatedChecklist = () => {
+          const prevItems = Array.isArray(trip.items) ? trip.items : [];
+          const prevBaggages = trip.baggages || {};
+          const existingByNormName = new Map();
+          prevItems.forEach(it => {
+            const norm = String(it.name || '').toLowerCase().trim();
+            if (norm && !existingByNormName.has(norm)) {
+              existingByNormName.set(norm, it);
+            }
+          });
+
           const fresh = generateChecklist({ countryKey, tripType, season, transport, activities, party, days, laundry });
+
+          // Conserver les franchises personnalisées si le transport n'a pas changé
+          if (!transportChanged) {
+            for (const [bKey, bVal] of Object.entries(prevBaggages)) {
+              if (fresh.baggages[bKey] && Number(bVal?.limit) > 0) {
+                fresh.baggages[bKey].limit = bVal.limit;
+              }
+            }
+          }
+
+          const freshNormNames = new Set();
+          fresh.items.forEach(it => {
+            const norm = String(it.name || '').toLowerCase().trim();
+            freshNormNames.add(norm);
+            const prev = existingByNormName.get(norm);
+            if (prev) {
+              it.checked = Boolean(prev.checked);
+              if (prev.note) it.note = prev.note;
+              if (prev.baggage === 'porte' || fresh.baggages[prev.baggage]) {
+                it.baggage = prev.baggage;
+              }
+              if (prev.person && prev.person !== 'shared' && typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[prev.person]) {
+                it.person = prev.person;
+              }
+            }
+          });
+
+          // Fusionner les articles personnalisés ajoutés à la main qui ne figurent pas dans la checklist générée
+          const fallbackBag = getDefaultBaggageKey(fresh.baggages);
+          let keptCustomCount = 0;
+          prevItems.forEach(prev => {
+            const isCustom = Boolean(prev.custom || String(prev.id || '').startsWith('custom_'));
+            if (!isCustom) return;
+            const norm = String(prev.name || '').toLowerCase().trim();
+            if (!norm || freshNormNames.has(norm)) return;
+
+            freshNormNames.add(norm);
+            const mergedCustom = {
+              ...prev,
+              custom: true,
+              baggage: (prev.baggage === 'porte' || fresh.baggages[prev.baggage]) ? prev.baggage : fallbackBag,
+              iata: transport === 'avion' ? (prev.iata || '') : ''
+            };
+            fresh.items.push(mergedCustom);
+            keptCustomCount++;
+          });
+
           trip.baggages = fresh.baggages;
           trip.items = fresh.items;
+          return keptCustomCount;
+        };
+
+        const regen = document.getElementById('tripRegenerateItems')?.checked;
+        if (regen) {
+          applyRecalculatedChecklist();
         } else {
           const baseBags = JSON.parse(JSON.stringify((TRANSPORTS[transport] || TRANSPORTS.avion).baggages));
           if (!transportChanged && trip.baggages) {
@@ -2938,11 +3200,27 @@
               item.iata = '';
             }
           });
-          if (appState.filterBaggage !== 'all' && !trip.baggages[appState.filterBaggage]) {
+          if (appState.filterBaggage !== 'all' && appState.filterBaggage !== 'porte' && !trip.baggages[appState.filterBaggage]) {
             appState.filterBaggage = 'all';
           }
           if (movedCount > 0) {
             showToast(`Voyage mis à jour (${movedCount} article${movedCount > 1 ? 's' : ''} réaffecté${movedCount > 1 ? 's' : ''})`);
+            closeTripModal();
+            saveState();
+            return;
+          }
+          if (paramsChanged) {
+            showToast('Paramètres modifiés : recalculer les quantités ?', {
+              actionLabel: 'Recalculer',
+              duration: 5500,
+              onAction: () => {
+                const kept = applyRecalculatedChecklist();
+                saveState();
+                showToast(kept > 0
+                  ? `Quantités recalculées (${kept} article${kept > 1 ? 's' : ''} personnalisé${kept > 1 ? 's' : ''} conservé${kept > 1 ? 's' : ''})`
+                  : 'Quantités et articles recalculés');
+              }
+            });
             closeTripModal();
             saveState();
             return;
@@ -3192,10 +3470,10 @@
       const done = t.items.filter(i => i.checked).length;
       return `
         <div class="list-card ${isActive ? 'active' : ''}">
-          <div class="list-card-info" data-action="select-trip" data-id="${safeId}">
-            <h4>${c.flag} ${escapeHtml(t.name)}</h4>
-            <p>${done}/${t.items.length} préparés · ${(getAllWeight(t) / 1000).toFixed(1)} kg</p>
-          </div>
+          <button type="button" class="list-card-info" data-action="select-trip" data-id="${safeId}">
+            <h4>${getCountryFlagSvg(t.countryKey, 'country-flag-inline')} ${escapeHtml(t.name)}</h4>
+            <p>${done}/${t.items.length} préparés · ${formatWeightKg(getAllWeight(t), 1)} kg</p>
+          </button>
           <div class="list-card-actions">
             <button type="button" class="icon-btn icon-btn-subtle" data-action="duplicate-trip" data-id="${safeId}" title="Dupliquer" aria-label="Dupliquer ce voyage">${SVG_COPY}</button>
             <button type="button" class="icon-btn icon-btn-subtle icon-btn-danger" data-action="delete-trip" data-id="${safeId}" title="Supprimer" aria-label="Supprimer">${SVG_TRASH}</button>
@@ -3496,7 +3774,7 @@
 
   async function checkForAppUpdates(isManual = false) {
     if (isManual) {
-      showToast('Vérification des mises à jour sur Git...');
+      showToast('Vérification des mises à jour sur Git...', { replaceId: 'app-update' });
     }
 
     try {
@@ -3513,7 +3791,7 @@
       }
 
       if (!bestUpdate) {
-        if (isManual) showToast('Impossible de vérifier sur Git (vérifiez votre connexion)');
+        if (isManual) showToast('Impossible de vérifier sur Git (vérifiez votre connexion)', { replaceId: 'app-update' });
         return;
       }
 
@@ -3532,12 +3810,12 @@
         latestReleaseData = bestUpdate;
         showUpdateModal(bestUpdate);
       } else if (isManual) {
-        showToast(`Application à jour (v${CURRENT_APP_VERSION})`);
+        showToast(`Application à jour (v${CURRENT_APP_VERSION})`, { replaceId: 'app-update' });
       }
     } catch (err) {
       console.warn('Échec de la vérification de mise à jour:', err);
       if (isManual) {
-        showToast('Impossible de vérifier (vérifiez votre connexion internet)');
+        showToast('Impossible de vérifier (vérifiez votre connexion internet)', { replaceId: 'app-update' });
       }
     }
   }
@@ -3638,4 +3916,360 @@
       downloadBtn.disabled = true;
     }
   }
+
+  // === COMPTE UTILISATEUR, AUTHENTIFICATION & SYNCHRONISATION CLOUD ===
+  function mergeStates(baseState, incomingGuestState) {
+    const merged = sanitizeImportedState(baseState) || createEmptyAppState();
+    const guest = sanitizeImportedState(incomingGuestState);
+    if (!guest) return { state: merged, addedTrips: 0, addedTemplates: 0 };
+
+    const existingTripIds = new Set(merged.trips.map(t => t.id));
+    let addedTrips = 0;
+    guest.trips.forEach(t => {
+      if (!existingTripIds.has(t.id)) {
+        merged.trips.push(t);
+        existingTripIds.add(t.id);
+        addedTrips++;
+      }
+    });
+
+    const existingTplIds = new Set(merged.customTemplates.map(tpl => tpl.id));
+    let addedTemplates = 0;
+    guest.customTemplates.forEach(tpl => {
+      if (!existingTplIds.has(tpl.id)) {
+        merged.customTemplates.push(tpl);
+        existingTplIds.add(tpl.id);
+        addedTemplates++;
+      }
+    });
+
+    if (!merged.activeTripId && merged.trips.length > 0) {
+      merged.activeTripId = guest.activeTripId && merged.trips.some(t => t.id === guest.activeTripId)
+        ? guest.activeTripId
+        : merged.trips[0].id;
+    }
+
+    return { state: merged, addedTrips, addedTemplates };
+  }
+
+  function clearGuestLocalStorageAfterMigration() {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY_V3);
+    localStorage.removeItem(LEGACY_STORAGE_KEY_V2);
+  }
+
+  function setAuthError(msg = '') {
+    const errEl = document.getElementById('authErrorMsg');
+    if (!errEl) return;
+    if (msg) {
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    } else {
+      errEl.textContent = '';
+      errEl.style.display = 'none';
+    }
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode === 'signup' ? 'signup' : 'login';
+    const tabLogin = document.getElementById('authTabLogin');
+    const tabSignup = document.getElementById('authTabSignup');
+    const nameGroup = document.getElementById('authNameGroup');
+    const submitBtn = document.getElementById('btnAuthSubmit');
+    const forgotBtn = document.getElementById('btnAuthForgot');
+    const pwdInput = document.getElementById('authPasswordInput');
+
+    if (tabLogin) {
+      tabLogin.classList.toggle('active', authMode === 'login');
+      tabLogin.setAttribute('aria-selected', String(authMode === 'login'));
+    }
+    if (tabSignup) {
+      tabSignup.classList.toggle('active', authMode === 'signup');
+      tabSignup.setAttribute('aria-selected', String(authMode === 'signup'));
+    }
+    if (nameGroup) nameGroup.style.display = authMode === 'signup' ? 'block' : 'none';
+    if (submitBtn) submitBtn.textContent = authMode === 'signup' ? (authLinkingGuestEmail ? 'Lier mon e-mail' : 'Créer mon compte') : 'Se connecter';
+    if (forgotBtn) forgotBtn.style.display = authMode === 'login' ? 'inline-block' : 'none';
+    if (pwdInput) pwdInput.setAttribute('autocomplete', authMode === 'signup' ? 'new-password' : 'current-password');
+    setAuthError('');
+  }
+
+  function getSyncStatusMeta(status) {
+    switch (status) {
+      case 'synced': return { dotClass: 'sync-dot-synced', text: 'Synchronisé dans le cloud' };
+      case 'syncing': return { dotClass: 'sync-dot-syncing', text: 'Synchronisation...' };
+      case 'offline': return { dotClass: 'sync-dot-offline', text: 'Hors-ligne (sauvegarde locale active)' };
+      case 'error': return { dotClass: 'sync-dot-error', text: 'Erreur de synchronisation' };
+      default: return { dotClass: 'sync-dot-local', text: 'Mode local (appareil uniquement)' };
+    }
+  }
+
+  function updateAuthUI(snapshot = window.ValiseCloud?.getSnapshot?.()) {
+    const snap = snapshot || { configured: false, user: null, syncStatus: 'local' };
+    const user = snap.user;
+    const syncMeta = getSyncStatusMeta(snap.syncStatus);
+
+    // Header pill
+    const headerAvatar = document.getElementById('headerAccountAvatar');
+    const headerLabel = document.getElementById('headerAccountLabel');
+    const headerDot = document.getElementById('headerSyncDot');
+
+    if (headerDot) {
+      headerDot.className = `sync-dot ${syncMeta.dotClass}`;
+    }
+
+    if (user) {
+      const displayName = user.isAnonymous ? 'Invité' : (user.displayName || user.email || 'Compte');
+      if (headerLabel) headerLabel.textContent = displayName;
+      if (headerAvatar) {
+        if (user.photoURL) {
+          headerAvatar.innerHTML = `<img src="${escapeHtml(user.photoURL)}" alt="">`;
+        } else {
+          const initial = escapeHtml((displayName[0] || 'U').toUpperCase());
+          headerAvatar.textContent = initial;
+        }
+      }
+    } else {
+      if (headerLabel) headerLabel.textContent = 'Invité';
+      if (headerAvatar) {
+        headerAvatar.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+      }
+    }
+
+    // Modal views
+    const unconfiguredBanner = document.getElementById('authUnconfiguredBanner');
+    const signedOutView = document.getElementById('authSignedOutView');
+    const signedInView = document.getElementById('authSignedInView');
+
+    if (unconfiguredBanner) {
+      unconfiguredBanner.style.display = snap.configured ? 'none' : 'block';
+    }
+
+    const showSignedIn = Boolean(user) && !authLinkingGuestEmail;
+    if (signedOutView) signedOutView.style.display = showSignedIn ? 'none' : 'block';
+    if (signedInView) signedInView.style.display = showSignedIn ? 'block' : 'none';
+
+    if (showSignedIn && user) {
+      const profileAvatar = document.getElementById('authProfileAvatar');
+      const profileName = document.getElementById('authProfileName');
+      const profileEmail = document.getElementById('authProfileEmail');
+      const modalDot = document.getElementById('authModalSyncDot');
+      const statusText = document.getElementById('authSyncStatusText');
+      const upgradeBox = document.getElementById('authUpgradeGuestBox');
+
+      const name = user.isAnonymous ? 'Compte invité' : (user.displayName || 'Voyageur');
+      if (profileName) profileName.textContent = name;
+      if (profileEmail) profileEmail.textContent = user.isAnonymous ? 'Synchronisation temporaire sur cet appareil' : (user.email || '');
+      if (profileAvatar) {
+        if (user.photoURL) {
+          profileAvatar.innerHTML = `<img src="${escapeHtml(user.photoURL)}" alt="">`;
+        } else {
+          profileAvatar.textContent = (name[0] || 'V').toUpperCase();
+        }
+      }
+      if (modalDot) modalDot.className = `sync-dot ${syncMeta.dotClass}`;
+      if (statusText) statusText.textContent = syncMeta.text;
+      if (upgradeBox) upgradeBox.style.display = user.isAnonymous ? 'block' : 'none';
+    }
+  }
+
+  function openAuthModal() {
+    authLinkingGuestEmail = false;
+    setAuthError('');
+    updateAuthUI();
+    document.getElementById('authModal')?.classList.add('open');
+  }
+
+  function closeAuthModal() {
+    authLinkingGuestEmail = false;
+    document.getElementById('authModal')?.classList.remove('open');
+  }
+
+  function initAuthModule() {
+    if (window.ValiseCloud && typeof window.ValiseCloud.onChange === 'function') {
+      window.ValiseCloud.onChange(updateAuthUI);
+    }
+
+    document.getElementById('authTabLogin')?.addEventListener('click', () => setAuthMode('login'));
+    document.getElementById('authTabSignup')?.addEventListener('click', () => setAuthMode('signup'));
+
+    document.getElementById('btnAuthGoogle')?.addEventListener('click', async () => {
+      if (!window.ValiseCloud?.isConfigured()) {
+        setAuthError('Configurez Firebase dans firebase-config.js pour utiliser la connexion Google.');
+        return;
+      }
+      setAuthError('');
+      try {
+        const user = await window.ValiseCloud.signInWithGoogle();
+        if (user) {
+          closeAuthModal();
+          showToast(`Bienvenue ${user.displayName || ''} !`);
+        }
+      } catch (err) {
+        setAuthError(err.message || 'Erreur de connexion Google.');
+      }
+    });
+
+    document.getElementById('authEmailForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!window.ValiseCloud?.isConfigured()) {
+        setAuthError('Configurez Firebase dans firebase-config.js pour activer les comptes.');
+        return;
+      }
+      const email = document.getElementById('authEmailInput')?.value?.trim() || '';
+      const password = document.getElementById('authPasswordInput')?.value || '';
+      const displayName = document.getElementById('authNameInput')?.value?.trim() || '';
+      const submitBtn = document.getElementById('btnAuthSubmit');
+
+      setAuthError('');
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        let user;
+        if (authMode === 'signup') {
+          user = await window.ValiseCloud.signUpWithEmail(email, password, displayName);
+          showToast('Compte créé et synchronisé !');
+        } else {
+          user = await window.ValiseCloud.signInWithEmail(email, password);
+          showToast(`Connecté en tant que ${user.displayName || user.email}`);
+        }
+        authLinkingGuestEmail = false;
+        closeAuthModal();
+      } catch (err) {
+        setAuthError(err.message || 'Erreur lors de la connexion.');
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+
+    document.getElementById('btnAuthForgot')?.addEventListener('click', async () => {
+      if (!window.ValiseCloud?.isConfigured()) return;
+      const email = document.getElementById('authEmailInput')?.value?.trim() || '';
+      if (!email) {
+        setAuthError('Saisissez votre adresse e-mail ci-dessus puis cliquez sur Mot de passe oublié.');
+        return;
+      }
+      setAuthError('');
+      try {
+        await window.ValiseCloud.sendPasswordReset(email);
+        showToast('E-mail de réinitialisation envoyé !');
+      } catch (err) {
+        setAuthError(err.message || 'Impossible d’envoyer l’e-mail.');
+      }
+    });
+
+    document.getElementById('btnAuthGuest')?.addEventListener('click', async () => {
+      if (window.ValiseCloud?.isConfigured()) {
+        try {
+          await window.ValiseCloud.signInAsGuest();
+        } catch (e) {}
+      }
+      closeAuthModal();
+      showToast('Mode hors-ligne / invité activé');
+    });
+
+    document.getElementById('btnUpgradeGoogle')?.addEventListener('click', async () => {
+      try {
+        const user = await window.ValiseCloud.signInWithGoogle();
+        if (user) {
+          updateAuthUI();
+          showToast('Compte lié à Google !');
+        }
+      } catch (err) {
+        showToast(err.message || 'Erreur lors de la liaison Google');
+      }
+    });
+
+    document.getElementById('btnUpgradeEmail')?.addEventListener('click', () => {
+      authLinkingGuestEmail = true;
+      setAuthMode('signup');
+      updateAuthUI();
+    });
+
+    document.getElementById('btnForceSync')?.addEventListener('click', async () => {
+      if (!window.ValiseCloud) return;
+      try {
+        await window.ValiseCloud.forceSync(appState);
+        showToast('Synchronisation terminée ✔');
+      } catch (err) {
+        showToast(err.message || 'Impossible de synchroniser');
+      }
+    });
+
+    document.getElementById('btnSignOut')?.addEventListener('click', () => {
+      showConfirm(
+        'Se déconnecter',
+        'Vos données restent sauvegardées dans votre compte cloud. Elles seront masquées sur cet appareil après déconnexion.',
+        'Se déconnecter',
+        async () => {
+          try {
+            await window.ValiseCloud?.signOut();
+            closeAuthModal();
+            showToast('Vous êtes déconnecté');
+          } catch (err) {
+            showToast(err.message || 'Erreur lors de la déconnexion');
+          }
+        }
+      );
+    });
+
+    updateAuthUI();
+  }
+
+  window.ValiseApp = {
+    onCloudInitialData(user, cloudData) {
+      activeCloudUser = user;
+      const guestState = loadGuestLocalState();
+      const hasGuestData = Boolean(guestState && (guestState.trips.length > 0 || guestState.customTemplates.length > 0));
+      const cleanCloud = cloudData ? sanitizeImportedState(cloudData) : null;
+      const hasCloudData = Boolean(cleanCloud && (cleanCloud.trips.length > 0 || cleanCloud.customTemplates.length > 0));
+
+      let stateToWriteBack = null;
+
+      if (!hasCloudData && hasGuestData) {
+        // Première connexion : migration automatique des voyages locaux vers le compte
+        appState = guestState;
+        clearGuestLocalStorageAfterMigration();
+        saveState(true, true);
+        stateToWriteBack = appState;
+        showToast(`${guestState.trips.length} voyage(s) local(aux) synchronisé(s) avec votre compte !`);
+      } else if (hasCloudData && hasGuestData) {
+        // Fusion intelligente des voyages créés hors-ligne avant connexion
+        const { state: merged, addedTrips, addedTemplates } = mergeStates(cleanCloud, guestState);
+        appState = merged;
+        clearGuestLocalStorageAfterMigration();
+        saveState(true, true);
+        if (addedTrips > 0 || addedTemplates > 0) {
+          stateToWriteBack = appState;
+          showToast(`${addedTrips} voyage(s) local(aux) fusionné(s) avec votre compte !`);
+        }
+      } else if (cleanCloud) {
+        appState = cleanCloud;
+        saveState(true, true);
+      } else {
+        // Nouveau compte vide sans données locales : on charge un éventuel cache utilisateur ou état vide
+        loadState();
+        render();
+        stateToWriteBack = appState;
+      }
+
+      updateAuthUI();
+      return stateToWriteBack;
+    },
+
+    onCloudRemoteUpdate(user, cloudData) {
+      if (!activeCloudUser || activeCloudUser.uid !== user.uid) return;
+      const clean = sanitizeImportedState(cloudData);
+      if (!clean) return;
+      appState = clean;
+      saveState(true, true);
+    },
+
+    onCloudSignedOut() {
+      if (!activeCloudUser) return;
+      activeCloudUser = null;
+      loadState();
+      render();
+      updateAuthUI();
+    }
+  };
 })();

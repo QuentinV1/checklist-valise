@@ -573,8 +573,7 @@ const COUNTRIES = {
     docs: [
       "Passeport valide (séjour < 90 jours sans visa)",
       "QR Codes Visit Japan Web (Douane & Immigration)",
-      "Permis de conduire + Traduction officielle JAF (si location voiture)",
-      "Attestation assurance santé / rapatriement"
+      "Permis de conduire + Traduction officielle JAF (si location voiture)"
     ],
     accessories: [
       "Adaptateur secteur Type A (x2)",
@@ -939,3 +938,82 @@ const DEFAULT_TEMPLATES = [
     party: { adultsMen: 1, adultsWomen: 1, teensBoys: 1, teensGirls: 0, childrenBoys: 0, childrenGirls: 0, babies: 0, pets: { enabled: false, type: "chien", takesPet: true } }
   }
 ];
+
+// Groupes de voyageurs pour l'attribution et la vue « Par Personne »
+const PERSON_GROUPS = {
+  adult: {
+    id: 'adult',
+    label: 'Adulte',
+    shortLabel: 'Adulte',
+    color: '#1E4D3B',
+    badgeBg: 'rgba(30, 77, 59, 0.12)',
+    iconSvg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+  },
+  child: {
+    id: 'child',
+    label: 'Enfant',
+    shortLabel: 'Enfant',
+    color: '#D97706',
+    badgeBg: 'rgba(217, 119, 6, 0.12)',
+    iconSvg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>'
+  },
+  pet: {
+    id: 'pet',
+    label: 'Animal',
+    shortLabel: 'Animal',
+    color: '#059669',
+    badgeBg: 'rgba(5, 150, 105, 0.12)',
+    iconSvg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="7" cy="14" r="2"/><path d="M12 14c-3.2 0-5 2.4-5 4.5C7 20 8.5 21 12 21s5-1 5-2.5c0-2.1-1.8-4.5-5-4.5Z"/></svg>'
+  },
+  shared: {
+    id: 'shared',
+    label: 'Commun / Partagé',
+    shortLabel: 'Commun',
+    color: '#475569',
+    badgeBg: 'rgba(71, 85, 105, 0.10)',
+    iconSvg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+  }
+};
+
+// Drapeaux SVG (viewBox 24x18) pour un rendu homogène sous Windows/Linux/macOS/Android
+const COUNTRY_FLAG_SVGS = {
+  france: '<rect width="8" height="18" fill="#002395"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#ED2939"/>',
+  espagne: '<rect width="24" height="18" fill="#AA151B"/><rect y="4.5" width="24" height="9" fill="#F1BF00"/><rect x="5.5" y="7" width="3" height="4" rx="0.6" fill="#AA151B"/>',
+  andorre: '<rect width="8" height="18" fill="#0018A8"/><rect x="8" width="8" height="18" fill="#FEDF00"/><rect x="16" width="8" height="18" fill="#D52B1E"/><rect x="10.2" y="7" width="3.6" height="4" rx="0.5" fill="#9E2A2B"/>',
+  croatie: '<rect width="24" height="6" fill="#FF0000"/><rect y="6" width="24" height="6" fill="#FFFFFF"/><rect y="12" width="24" height="6" fill="#171796"/><rect x="9.5" y="6" width="5" height="6" rx="0.8" fill="#FF0000"/><rect x="11.2" y="7.5" width="1.6" height="1.6" fill="#FFFFFF"/><rect x="11.2" y="10.2" width="1.6" height="1.6" fill="#FFFFFF"/>',
+  pologne: '<rect width="24" height="9" fill="#FFFFFF"/><rect y="9" width="24" height="9" fill="#DC143C"/>',
+  allemagne: '<rect width="24" height="6" fill="#000000"/><rect y="6" width="24" height="6" fill="#DD0000"/><rect y="12" width="24" height="6" fill="#FFCE00"/>',
+  irlande: '<rect width="8" height="18" fill="#169B62"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#FF883E"/>',
+  angleterre: '<rect width="24" height="18" fill="#012169"/><path d="M0 0L24 18M24 0L0 18" stroke="#FFFFFF" stroke-width="3.2"/><path d="M0 0L24 18M24 0L0 18" stroke="#C8102E" stroke-width="1.4"/><path d="M12 0V18M0 9H24" stroke="#FFFFFF" stroke-width="5"/><path d="M12 0V18M0 9H24" stroke="#C8102E" stroke-width="3"/>',
+  italie: '<rect width="8" height="18" fill="#009246"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#CE2B37"/>',
+  portugal: '<rect width="9.5" height="18" fill="#006600"/><rect x="9.5" width="14.5" height="18" fill="#FF0000"/><circle cx="9.5" cy="9" r="3.4" fill="#FFCC00"/><circle cx="9.5" cy="9" r="2.1" fill="#FFFFFF" stroke="#003399" stroke-width="0.7"/>',
+  grece: '<rect width="24" height="18" fill="#0D5EAF"/><rect y="2" width="24" height="2" fill="#FFFFFF"/><rect y="6" width="24" height="2" fill="#FFFFFF"/><rect y="10" width="24" height="2" fill="#FFFFFF"/><rect y="14" width="24" height="2" fill="#FFFFFF"/><rect width="10" height="10" fill="#0D5EAF"/><rect x="4" width="2" height="10" fill="#FFFFFF"/><rect y="4" width="10" height="2" fill="#FFFFFF"/>',
+  suisse: '<rect width="24" height="18" fill="#D52B1E"/><rect x="10.2" y="3.6" width="3.6" height="10.8" fill="#FFFFFF"/><rect x="6.6" y="7.2" width="10.8" height="3.6" fill="#FFFFFF"/>',
+  norvege: '<rect width="24" height="18" fill="#BA0C2F"/><path d="M8.5 0V18M0 9H24" stroke="#FFFFFF" stroke-width="4.2"/><path d="M8.5 0V18M0 9H24" stroke="#00205B" stroke-width="2.2"/>',
+  islande: '<rect width="24" height="18" fill="#02529C"/><path d="M8.5 0V18M0 9H24" stroke="#FFFFFF" stroke-width="4.2"/><path d="M8.5 0V18M0 9H24" stroke="#DC1E35" stroke-width="2.2"/>',
+  laponie: '<rect width="24" height="18" fill="#FFFFFF"/><path d="M8.5 0V18M0 9H24" stroke="#003580" stroke-width="3.6"/>',
+  japon: '<rect width="24" height="18" fill="#FFFFFF"/><circle cx="12" cy="9" r="4.8" fill="#BC002D"/>',
+  thailande: '<rect width="24" height="18" fill="#A51931"/><rect y="3" width="24" height="12" fill="#F4F5F8"/><rect y="6" width="24" height="6" fill="#2D2A4A"/>',
+  chine: '<rect width="24" height="18" fill="#DE2910"/><polygon points="5,3.2 5.6,5 7.4,5 5.9,6 6.5,7.8 5,6.7 3.5,7.8 4.1,6 2.6,5 4.4,5" fill="#FFDE00"/><circle cx="9.2" cy="2.8" r="0.6" fill="#FFDE00"/><circle cx="10.4" cy="4.4" r="0.6" fill="#FFDE00"/><circle cx="10.4" cy="6.6" r="0.6" fill="#FFDE00"/><circle cx="9.2" cy="8.2" r="0.6" fill="#FFDE00"/>',
+  bali: '<rect width="24" height="9" fill="#CE1126"/><rect y="9" width="24" height="9" fill="#FFFFFF"/>',
+  vietnam: '<rect width="24" height="18" fill="#DA251D"/><polygon points="12,4.2 13.1,7.5 16.5,7.5 13.8,9.5 14.8,12.8 12,10.8 9.2,12.8 10.2,9.5 7.5,7.5 10.9,7.5" fill="#FFFF00"/>',
+  coree: '<rect width="24" height="18" fill="#FFFFFF"/><path d="M12 4.8A4.2 4.2 0 0 1 12 13.2A2.1 2.1 0 0 1 12 9A2.1 2.1 0 0 0 12 4.8Z" fill="#CD2E3A"/><path d="M12 13.2A4.2 4.2 0 0 1 12 4.8A2.1 2.1 0 0 1 12 9A2.1 2.1 0 0 0 12 13.2Z" fill="#0047A0"/><path d="M5 4L6.8 2.2M5.7 4.7L7.5 2.9M6.4 5.4L8.2 3.6M15.8 14.4L17.6 12.6M16.5 15.1L18.3 13.3M17.2 15.8L19 14" stroke="#111827" stroke-width="0.9" stroke-linecap="round"/>',
+  usa: '<rect width="24" height="18" fill="#FFFFFF"/><rect width="24" height="2.6" fill="#B22234"/><rect y="5.1" width="24" height="2.6" fill="#B22234"/><rect y="10.2" width="24" height="2.6" fill="#B22234"/><rect y="15.4" width="24" height="2.6" fill="#B22234"/><rect width="10.5" height="9.6" fill="#3C3B6E"/><circle cx="2.5" cy="2.5" r="0.6" fill="#FFFFFF"/><circle cx="5.2" cy="2.5" r="0.6" fill="#FFFFFF"/><circle cx="8" cy="2.5" r="0.6" fill="#FFFFFF"/><circle cx="3.8" cy="4.8" r="0.6" fill="#FFFFFF"/><circle cx="6.6" cy="4.8" r="0.6" fill="#FFFFFF"/><circle cx="2.5" cy="7.1" r="0.6" fill="#FFFFFF"/><circle cx="5.2" cy="7.1" r="0.6" fill="#FFFFFF"/><circle cx="8" cy="7.1" r="0.6" fill="#FFFFFF"/>',
+  canada: '<rect width="6" height="18" fill="#FF0000"/><rect x="6" width="12" height="18" fill="#FFFFFF"/><rect x="18" width="6" height="18" fill="#FF0000"/><path d="M12 4.2L13 7L15 6.3L14.1 8.8L15.8 9.6L14.5 10.6L14.8 11.8L12.5 11.4V13.8H11.5V11.4L9.2 11.8L9.5 10.6L8.2 9.6L9.9 8.8L9 6.3L11 7Z" fill="#FF0000"/>',
+  quebec: '<rect width="24" height="18" fill="#003DA5"/><path d="M12 0V18M0 9H24" stroke="#FFFFFF" stroke-width="3"/><circle cx="5" cy="4.2" r="1.4" fill="#FFFFFF"/><circle cx="19" cy="4.2" r="1.4" fill="#FFFFFF"/><circle cx="5" cy="13.8" r="1.4" fill="#FFFFFF"/><circle cx="19" cy="13.8" r="1.4" fill="#FFFFFF"/>',
+  mexique: '<rect width="8" height="18" fill="#006847"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#CE1126"/><circle cx="12" cy="9" r="2.1" fill="#8B5A2B"/>',
+  bresil: '<rect width="24" height="18" fill="#009C3B"/><polygon points="12,2.2 21.5,9 12,15.8 2.5,9" fill="#FFDF00"/><circle cx="12" cy="9" r="3.4" fill="#002776"/><path d="M8.8 8.6Q12 7.4 15.2 9.4" stroke="#FFFFFF" stroke-width="0.9" fill="none"/>',
+  chili: '<rect width="24" height="9" fill="#FFFFFF"/><rect y="9" width="24" height="9" fill="#D52B1E"/><rect width="9" height="9" fill="#0039A6"/><polygon points="4.5,2.3 5.1,4.1 6.9,4.1 5.4,5.1 6,6.9 4.5,5.8 3,6.9 3.6,5.1 2.1,4.1 3.9,4.1" fill="#FFFFFF"/>',
+  perou: '<rect width="8" height="18" fill="#D91023"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#D91023"/>',
+  maroc: '<rect width="24" height="18" fill="#C1272D"/><polygon points="12,4.8 13,7.9 16.2,7.9 13.6,9.8 14.6,12.8 12,11 9.4,12.8 10.4,9.8 7.8,7.9 11,7.9" fill="none" stroke="#006233" stroke-width="1.2"/>',
+  tanzanie: '<rect width="24" height="18" fill="#1EB53A"/><polygon points="24,0 24,18 0,18" fill="#00A3DD"/><path d="M0 18L24 0" stroke="#FCD116" stroke-width="6.2"/><path d="M0 18L24 0" stroke="#000000" stroke-width="4.2"/>',
+  afrique_sud: '<rect width="24" height="6" fill="#E03C31"/><rect y="12" width="24" height="6" fill="#001489"/><rect y="6" width="24" height="6" fill="#FFFFFF"/><polygon points="0,0 10,9 0,18" fill="#000000"/><path d="M0 0L11 9L0 18M11 9H24" stroke="#007749" stroke-width="4.5" fill="none"/><path d="M0 1.8L8.5 9L0 16.2" stroke="#FFB81C" stroke-width="1.3" fill="none"/>',
+  egypte: '<rect width="24" height="6" fill="#CE1126"/><rect y="6" width="24" height="6" fill="#FFFFFF"/><rect y="12" width="24" height="6" fill="#000000"/><circle cx="12" cy="9" r="1.6" fill="#C09300"/>'
+};
+
+function getCountryFlagSvg(countryKey, className = '') {
+  const inner = COUNTRY_FLAG_SVGS[countryKey] || COUNTRY_FLAG_SVGS.france;
+  const cls = className ? `country-flag-svg ${className}` : 'country-flag-svg';
+  const label = (typeof COUNTRIES !== 'undefined' && COUNTRIES[countryKey]?.name) ? COUNTRIES[countryKey].name : 'Drapeau';
+  return `<svg class="${cls}" viewBox="0 0 24 18" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+}

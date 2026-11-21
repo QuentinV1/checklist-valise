@@ -117,6 +117,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--bg-page);
@@ -124,7 +129,7 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   padding-top: var(--safe-top);
-  padding-bottom: calc(var(--safe-bottom) + 96px);
+  padding-bottom: calc(var(--safe-bottom) + 108px);
   transition: background-color 0.2s ease, color 0.2s ease;
   -webkit-font-smoothing: antialiased;
 }
@@ -343,9 +348,12 @@ body {
 
 /* Main Container */
 .container {
+  width: 100%;
   max-width: 780px;
+  min-width: 0;
   margin: 0 auto;
   padding: 20px 16px;
+  overflow-x: hidden;
 }
 
 /* Buttons */
@@ -658,6 +666,7 @@ body {
 
 .view-mode-btn {
   flex: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -671,6 +680,7 @@ body {
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
@@ -1062,6 +1072,8 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   box-shadow: var(--shadow-sm);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -1273,6 +1285,8 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   box-shadow: var(--shadow-xs);
 }
 
@@ -1388,6 +1402,8 @@ body {
   font-size: 0.92rem;
   font-weight: 500;
   color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: anywhere;
   transition: color 0.15s ease;
 }
 
@@ -1628,6 +1644,7 @@ body {
   font-family: var(--font-sans);
   font-size: 0.92rem;
   font-weight: 600;
+  white-space: nowrap;
   box-shadow: var(--shadow-fab);
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
@@ -1666,6 +1683,7 @@ body {
   max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
@@ -1674,7 +1692,7 @@ body {
 }
 
 .modal-sheet-lg {
-  max-width: 540px;
+  max-width: 580px;
 }
 
 .modal-sheet-sm {
@@ -1708,11 +1726,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -1720,6 +1739,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .form-label {
@@ -2154,13 +2174,15 @@ body {
 }
 
 .grid-4 {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .visual-card-btn {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  width: 100%;
   padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
@@ -2502,15 +2524,19 @@ body {
   min-width: 0;
   flex: 1;
   cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font-family: var(--font-sans);
+  color: inherit;
 }
 
 .list-card-info h4 {
   font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .list-card-info p {
@@ -2670,7 +2696,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 200;
+  z-index: 90;
   pointer-events: none;
   width: max-content;
   max-width: calc(100vw - 32px);
@@ -2680,6 +2706,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  max-width: 100%;
   padding: 10px 16px;
   border-radius: var(--radius-full);
   background: var(--text-primary);
@@ -2775,10 +2802,160 @@ body {
     width: 36px;
     height: 36px;
   }
+
+  .view-mode-tabs {
+    gap: 4px;
+    padding: 3px;
+  }
+
+  .view-mode-btn {
+    padding: 7px 6px;
+    font-size: 0.74rem;
+    gap: 4px;
+  }
+
+  .fab-pill {
+    padding: 11px 18px;
+    font-size: 0.86rem;
+  }
+
+  .item-row {
+    padding: 10px 12px;
+    gap: 10px;
+  }
 }
 
 @media (max-width: 420px) {
   .header-left.has-switcher .brand-name {
+    display: none;
+  }
+}
+
+/* SVG Country Flags (Windows-safe) */
+.country-flag-svg {
+  display: inline-block;
+  width: 24px;
+  height: 18px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.hero-country-flag .country-flag-svg {
+  width: 30px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+.country-trigger-flag .country-flag-svg,
+.country-item-flag .country-flag-svg {
+  width: 26px;
+  height: 19px;
+}
+
+.preset-chip .country-flag-svg,
+.country-flag-inline {
+  width: 18px;
+  height: 14px;
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+
+/* Person View & Tag */
+.person-svg-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tag-person-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background: var(--person-bg, var(--bg-subtle));
+  color: var(--person-color, var(--text-secondary));
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.12s ease;
+}
+
+.tag-person-btn:hover {
+  filter: brightness(0.95);
+}
+
+.tag-person-btn:active {
+  transform: scale(0.96);
+}
+
+/* 4-tab view switcher on narrow screens */
+@media (max-width: 640px) {
+  .view-mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+}
+
+/* Desktop 2-Column Layout (>= 768px) & Centered Modals */
+@media (min-width: 768px) {
+  .header-inner,
+  .container {
+    max-width: 1200px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .empty-state {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .trip-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 370px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .trip-layout .hero-card {
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    margin-bottom: 0;
+  }
+
+  .trip-layout .view-mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .trip-main-col {
+    min-width: 0;
+  }
+
+  .modal-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-sheet {
+    margin: auto;
+    max-height: 88vh;
+  }
+
+  .sheet-handle {
     display: none;
   }
 }
@@ -2809,6 +2986,326 @@ body {
     box-shadow: none;
     border: 1px solid #cbd5e1;
   }
+}
+
+/* =========================================================
+   Compte utilisateur, Synchronisation & Modal Auth
+   ========================================================= */
+.account-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 11px 0 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.account-pill:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.account-pill:active {
+  transform: scale(0.97);
+}
+
+.account-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.account-label {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 420px) {
+  .account-label {
+    display: none;
+  }
+  .account-pill {
+    padding-right: 8px;
+  }
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sync-dot-local { background: var(--text-muted); }
+.sync-dot-synced { background: var(--success); }
+.sync-dot-syncing {
+  background: var(--solar);
+  animation: pulseSync 1.1s ease-in-out infinite;
+}
+.sync-dot-offline { background: var(--warning); }
+.sync-dot-error { background: var(--danger); }
+
+@keyframes pulseSync {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+
+.auth-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  line-height: 1.45;
+}
+
+.auth-info-banner {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
+.auth-info-banner code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.btn-google {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-google:hover {
+  background: var(--bg-subtle);
+  box-shadow: var(--shadow-xs);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  margin-bottom: 14px;
+}
+
+.auth-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: calc(var(--radius-md) - 3px);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.auth-tab.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.auth-error-msg {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.auth-forgot-link {
+  background: none;
+  border: none;
+  color: var(--accent-text);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-end;
+  padding: 2px 0;
+}
+
+.auth-forgot-link:hover {
+  text-decoration: underline;
+}
+
+.auth-guest-hint {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.auth-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+  margin-bottom: 14px;
+}
+
+.auth-profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.auth-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-profile-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.auth-profile-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-profile-email {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.auth-sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.auth-upgrade-box {
+  background: var(--accent-soft);
+  border: 1px solid rgba(30, 77, 59, 0.2);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 14px;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+.auth-upgrade-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.auth-signedin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-danger-outline {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+}
+
+.btn-danger-outline:hover {
+  background: var(--danger-soft);
 }
 
   </style>
@@ -2842,6 +3339,14 @@ body {
       </div>
 
       <div class="header-right">
+        <button type="button" class="account-pill" id="btnAccount" title="Compte &amp; Synchronisation" aria-label="Compte &amp; Synchronisation">
+          <span class="account-avatar" id="headerAccountAvatar" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <span class="account-label" id="headerAccountLabel">Invité</span>
+          <span class="sync-dot sync-dot-local" id="headerSyncDot" aria-hidden="true"></span>
+        </button>
+
         <button type="button" class="icon-btn" id="btnNewTripHeader" title="Nouveau voyage" aria-label="Nouveau voyage">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -2864,6 +3369,11 @@ body {
             </svg>
           </button>
           <div class="dropdown-menu" id="moreDropdown" role="menu">
+            <button type="button" class="dropdown-item" id="btnMenuAccount" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Compte &amp; Synchronisation</span>
+            </button>
+            <div class="dropdown-divider"></div>
             <button type="button" class="dropdown-item" id="btnTemplates" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
               <span>Modèles &amp; Checklists</span>
@@ -2918,7 +3428,7 @@ body {
           <path d="M9 11v5"/><path d="M15 11v5"/>
         </svg>
       </div>
-      <h1 class="empty-title">Aucun voyage en cours</h1>
+      <h2 class="empty-title">Aucun voyage en cours</h2>
       <p class="empty-subtitle">
         Créez une checklist sur mesure en quelques secondes. Les vêtements, adaptateurs et équipements sont préremplis selon votre destination, saison et activités.
       </p>
@@ -2936,7 +3446,7 @@ body {
       <div class="quick-presets">
         <p class="quick-presets-label">Démarrage rapide</p>
         <div class="quick-presets-grid">
-          <button type="button" class="preset-chip" data-preset="japon">🇯🇵 Japon · Mi-saison</button>
+          <button type="button" class="preset-chip" data-preset="japon"><svg class="country-flag-svg" viewBox="0 0 24 18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="18" fill="#FFFFFF"/><circle cx="12" cy="9" r="4.8" fill="#BC002D"/></svg> Japon · Mi-saison</button>
           <button type="button" class="preset-chip" data-preset="ski">⛷️ Ski · Hiver</button>
           <button type="button" class="preset-chip" data-preset="plage">🏖️ Plage · Été</button>
           <button type="button" class="preset-chip" data-preset="city">🏙️ City-trip · Week-end</button>
@@ -2947,12 +3457,13 @@ body {
 
     <!-- Active Trip View -->
     <div id="activeTripView" style="display: none;">
+      <div class="trip-layout">
 
-      <!-- Trip Summary Hero Card -->
+      <!-- Trip Summary Hero Card (Left Sidebar on Desktop >= 768px) -->
       <section class="hero-card">
         <div class="hero-top">
           <div class="hero-title-block">
-            <div class="hero-country-flag" id="heroFlag" aria-hidden="true">🇫🇷</div>
+            <div class="hero-country-flag" id="heroFlag" aria-hidden="true"><svg class="country-flag-svg" viewBox="0 0 24 18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="8" height="18" fill="#002395"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#ED2939"/></svg></div>
             <div class="hero-title-info">
               <div class="hero-title-row">
                 <h1 class="hero-title" id="heroTitle">Mon Voyage</h1>
@@ -2986,7 +3497,7 @@ body {
           </div>
         </div>
 
-        <!-- View Mode Switcher: Chronologie (défaut) / Bagages / Catégories -->
+        <!-- View Mode Switcher: Chronologie (défaut) / Bagages / Catégories / Personne -->
         <div class="view-mode-tabs" role="tablist" aria-label="Mode d'affichage">
           <button type="button" class="view-mode-btn active" data-view="chrono">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
@@ -2999,6 +3510,10 @@ body {
           <button type="button" class="view-mode-btn" data-view="category">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             <span>Par Catégorie</span>
+          </button>
+          <button type="button" class="view-mode-btn" data-view="person">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Par Personne</span>
           </button>
         </div>
 
@@ -3016,6 +3531,9 @@ body {
         <div id="countryInfoBar" class="country-strip" style="display: none;"></div>
         <div id="countryAlertBanner" class="alert-strip" style="display: none;"></div>
       </section>
+
+      <!-- Right Column: Controls & Checklist -->
+      <div class="trip-main-col">
 
       <!-- Search, Segmented Status Filter & Collapse All -->
       <div class="controls-bar">
@@ -3065,6 +3583,8 @@ body {
           <span>Ajouter un article</span>
         </button>
       </div>
+      </div><!-- /.trip-main-col -->
+      </div><!-- /.trip-layout -->
     </div>
 
   </main>
@@ -3091,9 +3611,20 @@ body {
           <input type="text" id="itemNote" class="form-control" maxlength="160" placeholder="Ex: À acheter avant départ, Poche avant, Prêté par Paul...">
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="itemPhase">Étape chronologique</label>
-          <select id="itemPhase" class="form-control"></select>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="itemPhase">Étape chronologique</label>
+            <select id="itemPhase" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="itemPerson">Voyageur / Attribution</label>
+            <select id="itemPerson" class="form-control">
+              <option value="shared">Commun / Partagé</option>
+              <option value="adult">Adulte</option>
+              <option value="child">Enfant</option>
+              <option value="pet">Animal</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-row">
@@ -3165,7 +3696,7 @@ body {
           <label class="form-label">Destination</label>
           <input type="hidden" id="tripCountrySelect" value="france">
           <button type="button" class="country-trigger-btn" id="btnCountryTrigger">
-            <span class="country-trigger-flag" id="selectedCountryFlag">🇫🇷</span>
+            <span class="country-trigger-flag" id="selectedCountryFlag"><svg class="country-flag-svg" viewBox="0 0 24 18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="8" height="18" fill="#002395"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#ED2939"/></svg></span>
             <div class="country-trigger-info">
               <span class="country-trigger-name" id="selectedCountryName">France (Métropole / Corse)</span>
               <span class="country-trigger-meta" id="selectedCountryMeta">Europe · Prise Type E · Euro (€)</span>
@@ -3574,9 +4105,548 @@ body {
     </div>
   </div>
 
+  <!-- Modal: Compte & Authentification -->
+  <div class="modal-overlay" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <div class="modal-sheet modal-sheet-sm">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="authModalTitle">Compte &amp; Synchronisation</h2>
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="authModal" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- État non configuré -->
+      <div id="authUnconfiguredBanner" class="auth-info-banner" style="display: none;">
+        <strong>Mode local actif</strong> : renseignez votre configuration Firebase dans <code>firebase-config.js</code> pour activer la connexion par utilisateur et la sauvegarde cloud.
+      </div>
+
+      <!-- Vue Connexion / Inscription -->
+      <div id="authSignedOutView">
+        <p class="auth-subtitle">Connectez-vous pour retrouver vos valises et checklists sur tous vos appareils (Web &amp; Android).</p>
+
+        <button type="button" class="btn btn-google" id="btnAuthGoogle">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+            <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+          </svg>
+          <span>Continuer avec Google</span>
+        </button>
+
+        <div class="auth-divider"><span>ou par e-mail</span></div>
+
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tab active" id="authTabLogin" role="tab" aria-selected="true">Connexion</button>
+          <button type="button" class="auth-tab" id="authTabSignup" role="tab" aria-selected="false">Créer un compte</button>
+        </div>
+
+        <form id="authEmailForm" class="auth-form">
+          <div class="form-group" id="authNameGroup" style="display: none;">
+            <label for="authNameInput">Prénom ou pseudo</label>
+            <input type="text" id="authNameInput" class="input" placeholder="Ex : Quentin" maxlength="60" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="authEmailInput">Adresse e-mail</label>
+            <input type="email" id="authEmailInput" class="input" placeholder="nom@exemple.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="authPasswordInput">Mot de passe</label>
+            <input type="password" id="authPasswordInput" class="input" placeholder="6 caractères minimum" required minlength="6" autocomplete="current-password">
+          </div>
+          <div class="auth-error-msg" id="authErrorMsg" role="alert" style="display: none;"></div>
+          <button type="submit" class="btn btn-primary" id="btnAuthSubmit" style="width: 100%;">Se connecter</button>
+          <button type="button" class="auth-forgot-link" id="btnAuthForgot">Mot de passe oublié ?</button>
+        </form>
+
+        <div class="auth-divider"><span>ou</span></div>
+
+        <button type="button" class="btn btn-secondary" id="btnAuthGuest" style="width: 100%;">
+          Continuer en mode hors-ligne / invité
+        </button>
+        <p class="auth-guest-hint">Vos voyages restent enregistrés sur cet appareil. Vous pourrez créer un compte plus tard sans rien perdre.</p>
+      </div>
+
+      <!-- Vue Connecté -->
+      <div id="authSignedInView" style="display: none;">
+        <div class="auth-profile-card">
+          <div class="auth-profile-avatar" id="authProfileAvatar">Q</div>
+          <div class="auth-profile-info">
+            <div class="auth-profile-name" id="authProfileName">Utilisateur</div>
+            <div class="auth-profile-email" id="authProfileEmail">email@exemple.com</div>
+            <div class="auth-sync-badge" id="authSyncBadge">
+              <span class="sync-dot sync-dot-synced" id="authModalSyncDot"></span>
+              <span id="authSyncStatusText">Synchronisé dans le cloud</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="authUpgradeGuestBox" class="auth-upgrade-box" style="display: none;">
+          <p><strong>Compte invité actif</strong> — Liez un e-mail ou Google pour sauvegarder vos voyages définitivement et y accéder depuis d'autres appareils.</p>
+          <div class="auth-upgrade-actions">
+            <button type="button" class="btn btn-primary btn-sm" id="btnUpgradeGoogle">Lier Google</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnUpgradeEmail">Lier un e-mail</button>
+          </div>
+        </div>
+
+        <div class="auth-signedin-actions">
+          <button type="button" class="btn btn-secondary" id="btnForceSync" style="width: 100%;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Synchroniser maintenant</span>
+          </button>
+          <button type="button" class="btn btn-danger-outline" id="btnSignOut" style="width: 100%;">
+            Se déconnecter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
+  <script>
+// Configuration Firebase pour Valise (Checklist Voyage)
+// Remplacez les valeurs ci-dessous par celles de votre projet Firebase :
+// Console Firebase > Paramètres du projet > Vos applications > Application Web
+// Ou via CLI : npx firebase-tools@latest apps:sdkconfig WEB <APP_ID>
+window.VALISE_FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCuYM0tMpd1f1jDYz27OhCaPpcAWhI3i48',
+  authDomain: 'quentin-apps-hub.firebaseapp.com',
+  projectId: 'quentin-apps-hub',
+  storageBucket: 'quentin-apps-hub.firebasestorage.app',
+  messagingSenderId: '249016348389',
+  appId: '1:249016348389:web:72db83034ab9737b9cee0c'
+};
+
+  </script>
+  <script type="module">
+// Synchronisation Cloud Firebase (Auth + Cloud Firestore avec persistance hors-ligne)
+const FIREBASE_SDK_VERSION = '11.4.0';
+
+function isConfigReady(cfg) {
+  if (!cfg || typeof cfg !== 'object') return false;
+  const required = ['apiKey', 'authDomain', 'projectId', 'appId'];
+  return required.every((k) => {
+    const val = String(cfg[k] || '').trim();
+    return Boolean(val) && !val.startsWith('YOUR_');
+  });
+}
+
+function translateAuthError(error) {
+  const code = error?.code || '';
+  switch (code) {
+    case 'auth/invalid-email':
+      return 'Adresse e-mail invalide.';
+    case 'auth/user-disabled':
+      return 'Ce compte a été désactivé.';
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'E-mail ou mot de passe incorrect.';
+    case 'auth/email-already-in-use':
+      return 'Un compte existe déjà avec cette adresse e-mail.';
+    case 'auth/weak-password':
+      return 'Le mot de passe doit contenir au moins 6 caractères.';
+    case 'auth/too-many-requests':
+      return 'Trop de tentatives. Réessayez dans quelques minutes.';
+    case 'auth/network-request-failed':
+      return 'Connexion réseau impossible. Vérifiez votre accès internet.';
+    case 'auth/popup-closed-by-user':
+      return 'Connexion annulée.';
+    case 'auth/unauthorized-domain':
+      return 'Domaine non autorisé dans Firebase Console (Authentication > Settings > Authorized domains).';
+    case 'auth/credential-already-in-use':
+      return 'Ce compte Google ou e-mail est déjà associé à un autre utilisateur.';
+    case 'auth/requires-recent-login':
+      return 'Veuillez vous reconnecter pour effectuer cette action.';
+    default:
+      return error?.message || 'Erreur d’authentification.';
+  }
+}
+
+const listeners = new Set();
+let auth = null;
+let db = null;
+let sdk = null;
+let currentUser = null;
+let syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'offline' | 'error'
+let unsubscribeSnapshot = null;
+let pushTimer = null;
+let pendingState = null;
+let lastLocalWriteAt = 0;
+let initialCloudSyncDoneForUid = null;
+let knownCloudDocExists = false;
+let initialized = false;
+let initPromise = null;
+
+function notify() {
+  const snapshot = getSnapshot();
+  listeners.forEach((fn) => {
+    try { fn(snapshot); } catch (e) { console.warn('ValiseCloud listener error:', e); }
+  });
+}
+
+function setSyncStatus(next) {
+  if (syncStatus !== next) {
+    syncStatus = next;
+    notify();
+  }
+}
+
+function formatUser(user) {
+  if (!user) return null;
+  const providerId = user.isAnonymous
+    ? 'anonymous'
+    : (user.providerData?.[0]?.providerId || 'password');
+  return {
+    uid: user.uid,
+    email: user.email || null,
+    displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'Invité'),
+    photoURL: user.photoURL || null,
+    isAnonymous: Boolean(user.isAnonymous),
+    providerId
+  };
+}
+
+function getSnapshot() {
+  return {
+    configured: isConfigReady(window.VALISE_FIREBASE_CONFIG),
+    initialized,
+    user: formatUser(currentUser),
+    syncStatus,
+    online: navigator.onLine
+  };
+}
+
+function stopFirestoreListener() {
+  if (unsubscribeSnapshot) {
+    unsubscribeSnapshot();
+    unsubscribeSnapshot = null;
+  }
+  if (pushTimer) {
+    clearTimeout(pushTimer);
+    pushTimer = null;
+  }
+  pendingState = null;
+  initialCloudSyncDoneForUid = null;
+  knownCloudDocExists = false;
+}
+
+function getUserAppDocRef(user) {
+  return sdk.doc(db, 'users', user.uid, 'apps', 'checklist_valise');
+}
+
+function buildFirestorePayload(state, includeCreatedAt = false) {
+  const docData = {
+    title: 'Checklist Valise',
+    updatedAt: sdk.serverTimestamp(),
+    payload: {
+      trips: Array.isArray(state.trips) ? state.trips : [],
+      customTemplates: Array.isArray(state.customTemplates) ? state.customTemplates : [],
+      activeTripId: state.activeTripId || null,
+      viewMode: state.viewMode || 'chrono',
+      filterPhase: state.filterPhase || 'all',
+      filterBaggage: state.filterBaggage || 'all',
+      filterStatus: state.filterStatus || 'all',
+      collapsedSections: state.collapsedSections && typeof state.collapsedSections === 'object'
+        ? state.collapsedSections
+        : {},
+      updatedAtMs: Date.now()
+    }
+  };
+  if (includeCreatedAt) {
+    docData.createdAt = sdk.serverTimestamp();
+  }
+  return docData;
+}
+
+function startUserSync(user) {
+  if (!db || !sdk || !user) return;
+  stopFirestoreListener();
+
+  const userRef = getUserAppDocRef(user);
+  setSyncStatus(navigator.onLine ? 'syncing' : 'offline');
+
+  unsubscribeSnapshot = sdk.onSnapshot(
+    userRef,
+    { includeMetadataChanges: true },
+    async (docSnap) => {
+      const isInitialForUser = initialCloudSyncDoneForUid !== user.uid;
+      const fromCache = docSnap.metadata.fromCache;
+      const hasPending = docSnap.metadata.hasPendingWrites;
+
+      if (docSnap.exists()) {
+        knownCloudDocExists = true;
+      }
+
+      if (hasPending) {
+        setSyncStatus(navigator.onLine ? 'syncing' : 'offline');
+        return;
+      }
+
+      const rawData = docSnap.exists() ? docSnap.data() : null;
+      const cloudData = rawData?.payload || null;
+
+      if (isInitialForUser) {
+        initialCloudSyncDoneForUid = user.uid;
+        if (window.ValiseApp && typeof window.ValiseApp.onCloudInitialData === 'function') {
+          const mergedState = window.ValiseApp.onCloudInitialData(formatUser(user), cloudData);
+          if (mergedState) {
+            await writeToFirestoreNow(mergedState, user);
+          }
+        }
+      } else if (cloudData) {
+        const remoteTs = Number(cloudData.updatedAtMs || rawData?.updatedAt?.toMillis?.() || 0);
+        if (remoteTs > lastLocalWriteAt + 500) {
+          window.ValiseApp?.onCloudRemoteUpdate?.(formatUser(user), cloudData);
+        }
+      }
+
+      setSyncStatus(!navigator.onLine || fromCache ? (navigator.onLine ? 'synced' : 'offline') : 'synced');
+    },
+    (err) => {
+      console.warn('Erreur Firestore onSnapshot:', err);
+      setSyncStatus(navigator.onLine ? 'error' : 'offline');
+    }
+  );
+}
+
+async function writeToFirestoreNow(state, user = currentUser) {
+  if (!db || !sdk || !user || !state) return;
+  const userRef = getUserAppDocRef(user);
+  const payload = buildFirestorePayload(state, !knownCloudDocExists);
+  lastLocalWriteAt = payload.payload.updatedAtMs;
+  setSyncStatus(navigator.onLine ? 'syncing' : 'offline');
+  try {
+    await sdk.setDoc(userRef, payload, { merge: true });
+    knownCloudDocExists = true;
+    setSyncStatus(navigator.onLine ? 'synced' : 'offline');
+  } catch (err) {
+    console.warn('Erreur écriture Firestore:', err);
+    setSyncStatus(navigator.onLine ? 'error' : 'offline');
+  }
+}
+
+async function init() {
+  if (initPromise) return initPromise;
+  initPromise = (async () => {
+    const cfg = window.VALISE_FIREBASE_CONFIG;
+    if (!isConfigReady(cfg) || window.location.protocol === 'file:') {
+      initialized = true;
+      setSyncStatus('local');
+      notify();
+      return;
+    }
+
+    try {
+      const baseUrl = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
+      const [appMod, authMod, fsMod] = await Promise.all([
+        import(`${baseUrl}/firebase-app.js`),
+        import(`${baseUrl}/firebase-auth.js`),
+        import(`${baseUrl}/firebase-firestore.js`)
+      ]);
+
+      sdk = { ...appMod, ...authMod, ...fsMod };
+      const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(cfg);
+      auth = authMod.getAuth(app);
+
+      try {
+        db = fsMod.initializeFirestore(app, {
+          localCache: fsMod.persistentLocalCache({
+            tabManager: fsMod.persistentMultipleTabManager()
+          })
+        });
+      } catch (cacheErr) {
+        db = fsMod.getFirestore(app);
+      }
+
+      // Gère le retour d'une redirection Google OAuth si utilisée
+      authMod.getRedirectResult(auth).catch((err) => {
+        console.warn('Erreur getRedirectResult:', err);
+      });
+
+      authMod.onAuthStateChanged(auth, (user) => {
+        const prevUid = currentUser?.uid || null;
+        currentUser = user || null;
+        if (currentUser) {
+          if (prevUid !== currentUser.uid) {
+            startUserSync(currentUser);
+          }
+        } else {
+          stopFirestoreListener();
+          setSyncStatus('local');
+          window.ValiseApp?.onCloudSignedOut?.();
+        }
+        notify();
+      });
+
+      initialized = true;
+      notify();
+    } catch (err) {
+      console.warn('Firebase SDK indisponible (mode hors-ligne local):', err);
+      initialized = true;
+      setSyncStatus('local');
+      notify();
+    }
+  })();
+
+  return initPromise;
+}
+
+window.addEventListener('online', () => {
+  if (currentUser) setSyncStatus('syncing');
+  notify();
+});
+
+window.addEventListener('offline', () => {
+  if (currentUser) setSyncStatus('offline');
+  notify();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && pendingState && currentUser) {
+    const toFlush = pendingState;
+    pendingState = null;
+    if (pushTimer) {
+      clearTimeout(pushTimer);
+      pushTimer = null;
+    }
+    writeToFirestoreNow(toFlush, currentUser);
+  }
+});
+
+window.ValiseCloud = {
+  init,
+  getSnapshot,
+  isConfigured: () => isConfigReady(window.VALISE_FIREBASE_CONFIG),
+  getUser: () => formatUser(currentUser),
+  onChange(fn) {
+    if (typeof fn === 'function') listeners.add(fn);
+    return () => listeners.delete(fn);
+  },
+
+  pushState(state) {
+    if (!currentUser || !db || !sdk) return;
+    pendingState = state;
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => {
+      const toFlush = pendingState;
+      pendingState = null;
+      pushTimer = null;
+      if (toFlush && currentUser) {
+        writeToFirestoreNow(toFlush, currentUser);
+      }
+    }, 400);
+  },
+
+  async forceSync(state) {
+    await init();
+    if (!currentUser) throw new Error('Aucun compte connecté.');
+    if (pushTimer) {
+      clearTimeout(pushTimer);
+      pushTimer = null;
+    }
+    pendingState = null;
+    await writeToFirestoreNow(state, currentUser);
+  },
+
+  async signInWithEmail(email, password) {
+    await init();
+    if (!auth || !sdk) throw new Error('Firebase non configuré.');
+    try {
+      const cred = await sdk.signInWithEmailAndPassword(auth, email.trim(), password);
+      return formatUser(cred.user);
+    } catch (err) {
+      throw new Error(translateAuthError(err));
+    }
+  },
+
+  async signUpWithEmail(email, password, displayName = '') {
+    await init();
+    if (!auth || !sdk) throw new Error('Firebase non configuré.');
+    try {
+      let cred;
+      if (currentUser && currentUser.isAnonymous) {
+        const credential = sdk.EmailAuthProvider.credential(email.trim(), password);
+        cred = await sdk.linkWithCredential(currentUser, credential);
+      } else {
+        cred = await sdk.createUserWithEmailAndPassword(auth, email.trim(), password);
+      }
+      if (displayName.trim()) {
+        await sdk.updateProfile(cred.user, { displayName: displayName.trim() });
+      }
+      return formatUser(cred.user);
+    } catch (err) {
+      throw new Error(translateAuthError(err));
+    }
+  },
+
+  async sendPasswordReset(email) {
+    await init();
+    if (!auth || !sdk) throw new Error('Firebase non configuré.');
+    try {
+      await sdk.sendPasswordResetEmail(auth, email.trim());
+    } catch (err) {
+      throw new Error(translateAuthError(err));
+    }
+  },
+
+  async signInWithGoogle() {
+    await init();
+    if (!auth || !sdk) throw new Error('Firebase non configuré.');
+    const provider = new sdk.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      if (currentUser && currentUser.isAnonymous) {
+        const cred = await sdk.linkWithPopup(currentUser, provider);
+        return formatUser(cred.user);
+      }
+      const cred = await sdk.signInWithPopup(auth, provider);
+      return formatUser(cred.user);
+    } catch (err) {
+      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/operation-not-supported-in-this-environment') {
+        await sdk.signInWithRedirect(auth, provider);
+        return null;
+      }
+      throw new Error(translateAuthError(err));
+    }
+  },
+
+  async signInAsGuest() {
+    await init();
+    if (!auth || !sdk || !navigator.onLine) {
+      // Mode invité local pur
+      return null;
+    }
+    try {
+      const cred = await sdk.signInAnonymously(auth);
+      return formatUser(cred.user);
+    } catch (err) {
+      // Si l'auth anonyme est désactivée dans la console Firebase, on reste en mode invité local
+      console.warn('Auth anonyme indisponible, bascule en invité local:', err?.code || err);
+      return null;
+    }
+  },
+
+  async signOut() {
+    await init();
+    if (!auth || !sdk) return;
+    if (pendingState && currentUser) {
+      const toFlush = pendingState;
+      pendingState = null;
+      if (pushTimer) {
+        clearTimeout(pushTimer);
+        pushTimer = null;
+      }
+      await writeToFirestoreNow(toFlush, currentUser);
+    }
+    await sdk.signOut(auth);
+  }
+};
+
+  </script>
   <script>
 // Données de référence : Catégories, Chronologie, Types de voyage, Saisons, Transports et 32 Pays
 
@@ -4153,8 +5223,7 @@ const COUNTRIES = {
     docs: [
       "Passeport valide (séjour < 90 jours sans visa)",
       "QR Codes Visit Japan Web (Douane & Immigration)",
-      "Permis de conduire + Traduction officielle JAF (si location voiture)",
-      "Attestation assurance santé / rapatriement"
+      "Permis de conduire + Traduction officielle JAF (si location voiture)"
     ],
     accessories: [
       "Adaptateur secteur Type A (x2)",
@@ -4520,6 +5589,85 @@ const DEFAULT_TEMPLATES = [
   }
 ];
 
+// Groupes de voyageurs pour l'attribution et la vue « Par Personne »
+const PERSON_GROUPS = {
+  adult: {
+    id: 'adult',
+    label: 'Adulte',
+    shortLabel: 'Adulte',
+    color: '#1E4D3B',
+    badgeBg: 'rgba(30, 77, 59, 0.12)',
+    iconSvg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+  },
+  child: {
+    id: 'child',
+    label: 'Enfant',
+    shortLabel: 'Enfant',
+    color: '#D97706',
+    badgeBg: 'rgba(217, 119, 6, 0.12)',
+    iconSvg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>'
+  },
+  pet: {
+    id: 'pet',
+    label: 'Animal',
+    shortLabel: 'Animal',
+    color: '#059669',
+    badgeBg: 'rgba(5, 150, 105, 0.12)',
+    iconSvg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="7" cy="14" r="2"/><path d="M12 14c-3.2 0-5 2.4-5 4.5C7 20 8.5 21 12 21s5-1 5-2.5c0-2.1-1.8-4.5-5-4.5Z"/></svg>'
+  },
+  shared: {
+    id: 'shared',
+    label: 'Commun / Partagé',
+    shortLabel: 'Commun',
+    color: '#475569',
+    badgeBg: 'rgba(71, 85, 105, 0.10)',
+    iconSvg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+  }
+};
+
+// Drapeaux SVG (viewBox 24x18) pour un rendu homogène sous Windows/Linux/macOS/Android
+const COUNTRY_FLAG_SVGS = {
+  france: '<rect width="8" height="18" fill="#002395"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#ED2939"/>',
+  espagne: '<rect width="24" height="18" fill="#AA151B"/><rect y="4.5" width="24" height="9" fill="#F1BF00"/><rect x="5.5" y="7" width="3" height="4" rx="0.6" fill="#AA151B"/>',
+  andorre: '<rect width="8" height="18" fill="#0018A8"/><rect x="8" width="8" height="18" fill="#FEDF00"/><rect x="16" width="8" height="18" fill="#D52B1E"/><rect x="10.2" y="7" width="3.6" height="4" rx="0.5" fill="#9E2A2B"/>',
+  croatie: '<rect width="24" height="6" fill="#FF0000"/><rect y="6" width="24" height="6" fill="#FFFFFF"/><rect y="12" width="24" height="6" fill="#171796"/><rect x="9.5" y="6" width="5" height="6" rx="0.8" fill="#FF0000"/><rect x="11.2" y="7.5" width="1.6" height="1.6" fill="#FFFFFF"/><rect x="11.2" y="10.2" width="1.6" height="1.6" fill="#FFFFFF"/>',
+  pologne: '<rect width="24" height="9" fill="#FFFFFF"/><rect y="9" width="24" height="9" fill="#DC143C"/>',
+  allemagne: '<rect width="24" height="6" fill="#000000"/><rect y="6" width="24" height="6" fill="#DD0000"/><rect y="12" width="24" height="6" fill="#FFCE00"/>',
+  irlande: '<rect width="8" height="18" fill="#169B62"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#FF883E"/>',
+  angleterre: '<rect width="24" height="18" fill="#012169"/><path d="M0 0L24 18M24 0L0 18" stroke="#FFFFFF" stroke-width="3.2"/><path d="M0 0L24 18M24 0L0 18" stroke="#C8102E" stroke-width="1.4"/><path d="M12 0V18M0 9H24" stroke="#FFFFFF" stroke-width="5"/><path d="M12 0V18M0 9H24" stroke="#C8102E" stroke-width="3"/>',
+  italie: '<rect width="8" height="18" fill="#009246"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#CE2B37"/>',
+  portugal: '<rect width="9.5" height="18" fill="#006600"/><rect x="9.5" width="14.5" height="18" fill="#FF0000"/><circle cx="9.5" cy="9" r="3.4" fill="#FFCC00"/><circle cx="9.5" cy="9" r="2.1" fill="#FFFFFF" stroke="#003399" stroke-width="0.7"/>',
+  grece: '<rect width="24" height="18" fill="#0D5EAF"/><rect y="2" width="24" height="2" fill="#FFFFFF"/><rect y="6" width="24" height="2" fill="#FFFFFF"/><rect y="10" width="24" height="2" fill="#FFFFFF"/><rect y="14" width="24" height="2" fill="#FFFFFF"/><rect width="10" height="10" fill="#0D5EAF"/><rect x="4" width="2" height="10" fill="#FFFFFF"/><rect y="4" width="10" height="2" fill="#FFFFFF"/>',
+  suisse: '<rect width="24" height="18" fill="#D52B1E"/><rect x="10.2" y="3.6" width="3.6" height="10.8" fill="#FFFFFF"/><rect x="6.6" y="7.2" width="10.8" height="3.6" fill="#FFFFFF"/>',
+  norvege: '<rect width="24" height="18" fill="#BA0C2F"/><path d="M8.5 0V18M0 9H24" stroke="#FFFFFF" stroke-width="4.2"/><path d="M8.5 0V18M0 9H24" stroke="#00205B" stroke-width="2.2"/>',
+  islande: '<rect width="24" height="18" fill="#02529C"/><path d="M8.5 0V18M0 9H24" stroke="#FFFFFF" stroke-width="4.2"/><path d="M8.5 0V18M0 9H24" stroke="#DC1E35" stroke-width="2.2"/>',
+  laponie: '<rect width="24" height="18" fill="#FFFFFF"/><path d="M8.5 0V18M0 9H24" stroke="#003580" stroke-width="3.6"/>',
+  japon: '<rect width="24" height="18" fill="#FFFFFF"/><circle cx="12" cy="9" r="4.8" fill="#BC002D"/>',
+  thailande: '<rect width="24" height="18" fill="#A51931"/><rect y="3" width="24" height="12" fill="#F4F5F8"/><rect y="6" width="24" height="6" fill="#2D2A4A"/>',
+  chine: '<rect width="24" height="18" fill="#DE2910"/><polygon points="5,3.2 5.6,5 7.4,5 5.9,6 6.5,7.8 5,6.7 3.5,7.8 4.1,6 2.6,5 4.4,5" fill="#FFDE00"/><circle cx="9.2" cy="2.8" r="0.6" fill="#FFDE00"/><circle cx="10.4" cy="4.4" r="0.6" fill="#FFDE00"/><circle cx="10.4" cy="6.6" r="0.6" fill="#FFDE00"/><circle cx="9.2" cy="8.2" r="0.6" fill="#FFDE00"/>',
+  bali: '<rect width="24" height="9" fill="#CE1126"/><rect y="9" width="24" height="9" fill="#FFFFFF"/>',
+  vietnam: '<rect width="24" height="18" fill="#DA251D"/><polygon points="12,4.2 13.1,7.5 16.5,7.5 13.8,9.5 14.8,12.8 12,10.8 9.2,12.8 10.2,9.5 7.5,7.5 10.9,7.5" fill="#FFFF00"/>',
+  coree: '<rect width="24" height="18" fill="#FFFFFF"/><path d="M12 4.8A4.2 4.2 0 0 1 12 13.2A2.1 2.1 0 0 1 12 9A2.1 2.1 0 0 0 12 4.8Z" fill="#CD2E3A"/><path d="M12 13.2A4.2 4.2 0 0 1 12 4.8A2.1 2.1 0 0 1 12 9A2.1 2.1 0 0 0 12 13.2Z" fill="#0047A0"/><path d="M5 4L6.8 2.2M5.7 4.7L7.5 2.9M6.4 5.4L8.2 3.6M15.8 14.4L17.6 12.6M16.5 15.1L18.3 13.3M17.2 15.8L19 14" stroke="#111827" stroke-width="0.9" stroke-linecap="round"/>',
+  usa: '<rect width="24" height="18" fill="#FFFFFF"/><rect width="24" height="2.6" fill="#B22234"/><rect y="5.1" width="24" height="2.6" fill="#B22234"/><rect y="10.2" width="24" height="2.6" fill="#B22234"/><rect y="15.4" width="24" height="2.6" fill="#B22234"/><rect width="10.5" height="9.6" fill="#3C3B6E"/><circle cx="2.5" cy="2.5" r="0.6" fill="#FFFFFF"/><circle cx="5.2" cy="2.5" r="0.6" fill="#FFFFFF"/><circle cx="8" cy="2.5" r="0.6" fill="#FFFFFF"/><circle cx="3.8" cy="4.8" r="0.6" fill="#FFFFFF"/><circle cx="6.6" cy="4.8" r="0.6" fill="#FFFFFF"/><circle cx="2.5" cy="7.1" r="0.6" fill="#FFFFFF"/><circle cx="5.2" cy="7.1" r="0.6" fill="#FFFFFF"/><circle cx="8" cy="7.1" r="0.6" fill="#FFFFFF"/>',
+  canada: '<rect width="6" height="18" fill="#FF0000"/><rect x="6" width="12" height="18" fill="#FFFFFF"/><rect x="18" width="6" height="18" fill="#FF0000"/><path d="M12 4.2L13 7L15 6.3L14.1 8.8L15.8 9.6L14.5 10.6L14.8 11.8L12.5 11.4V13.8H11.5V11.4L9.2 11.8L9.5 10.6L8.2 9.6L9.9 8.8L9 6.3L11 7Z" fill="#FF0000"/>',
+  quebec: '<rect width="24" height="18" fill="#003DA5"/><path d="M12 0V18M0 9H24" stroke="#FFFFFF" stroke-width="3"/><circle cx="5" cy="4.2" r="1.4" fill="#FFFFFF"/><circle cx="19" cy="4.2" r="1.4" fill="#FFFFFF"/><circle cx="5" cy="13.8" r="1.4" fill="#FFFFFF"/><circle cx="19" cy="13.8" r="1.4" fill="#FFFFFF"/>',
+  mexique: '<rect width="8" height="18" fill="#006847"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#CE1126"/><circle cx="12" cy="9" r="2.1" fill="#8B5A2B"/>',
+  bresil: '<rect width="24" height="18" fill="#009C3B"/><polygon points="12,2.2 21.5,9 12,15.8 2.5,9" fill="#FFDF00"/><circle cx="12" cy="9" r="3.4" fill="#002776"/><path d="M8.8 8.6Q12 7.4 15.2 9.4" stroke="#FFFFFF" stroke-width="0.9" fill="none"/>',
+  chili: '<rect width="24" height="9" fill="#FFFFFF"/><rect y="9" width="24" height="9" fill="#D52B1E"/><rect width="9" height="9" fill="#0039A6"/><polygon points="4.5,2.3 5.1,4.1 6.9,4.1 5.4,5.1 6,6.9 4.5,5.8 3,6.9 3.6,5.1 2.1,4.1 3.9,4.1" fill="#FFFFFF"/>',
+  perou: '<rect width="8" height="18" fill="#D91023"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#D91023"/>',
+  maroc: '<rect width="24" height="18" fill="#C1272D"/><polygon points="12,4.8 13,7.9 16.2,7.9 13.6,9.8 14.6,12.8 12,11 9.4,12.8 10.4,9.8 7.8,7.9 11,7.9" fill="none" stroke="#006233" stroke-width="1.2"/>',
+  tanzanie: '<rect width="24" height="18" fill="#1EB53A"/><polygon points="24,0 24,18 0,18" fill="#00A3DD"/><path d="M0 18L24 0" stroke="#FCD116" stroke-width="6.2"/><path d="M0 18L24 0" stroke="#000000" stroke-width="4.2"/>',
+  afrique_sud: '<rect width="24" height="6" fill="#E03C31"/><rect y="12" width="24" height="6" fill="#001489"/><rect y="6" width="24" height="6" fill="#FFFFFF"/><polygon points="0,0 10,9 0,18" fill="#000000"/><path d="M0 0L11 9L0 18M11 9H24" stroke="#007749" stroke-width="4.5" fill="none"/><path d="M0 1.8L8.5 9L0 16.2" stroke="#FFB81C" stroke-width="1.3" fill="none"/>',
+  egypte: '<rect width="24" height="6" fill="#CE1126"/><rect y="6" width="24" height="6" fill="#FFFFFF"/><rect y="12" width="24" height="6" fill="#000000"/><circle cx="12" cy="9" r="1.6" fill="#C09300"/>'
+};
+
+function getCountryFlagSvg(countryKey, className = '') {
+  const inner = COUNTRY_FLAG_SVGS[countryKey] || COUNTRY_FLAG_SVGS.france;
+  const cls = className ? `country-flag-svg ${className}` : 'country-flag-svg';
+  const label = (typeof COUNTRIES !== 'undefined' && COUNTRIES[countryKey]?.name) ? COUNTRIES[countryKey].name : 'Drapeau';
+  return `<svg class="${cls}" viewBox="0 0 24 18" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+}
+
 
 // Valise — Checklist Voyage Moderne (2026)
 (() => {
@@ -4564,6 +5712,9 @@ const DEFAULT_TEMPLATES = [
   let currentRegionFilter = 'all';
   let confirmCallback = null;
   let latestReleaseData = null;
+  let activeCloudUser = null;
+  let authMode = 'login'; // 'login' | 'signup'
+  let authLinkingGuestEmail = false;
 
   function createDefaultParty() {
     return {
@@ -4585,6 +5736,11 @@ const DEFAULT_TEMPLATES = [
   }
 
   // === UTILITAIRES & VALIDATION ===
+  function formatWeightKg(grams, decimals = 2) {
+    const factor = Math.pow(10, decimals);
+    return (Math.round((((Number(grams) || 0) / 1000) + Number.EPSILON) * factor) / factor).toFixed(decimals);
+  }
+
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>'"]/g, tag => ({
       '&': '&amp;',
@@ -4796,6 +5952,13 @@ const DEFAULT_TEMPLATES = [
     return Object.keys(baggages)[0] || 'porte';
   }
 
+  function inferLegacyPerson(raw) {
+    if (typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[raw?.person]) return raw.person;
+    if (raw?.cat === 'pet') return 'pet';
+    if (raw?.cat === 'baby') return 'child';
+    return 'shared';
+  }
+
   function sanitizeItem(raw, baggages, usedIds) {
     if (!raw || typeof raw !== 'object') return null;
     const name = sanitizeText(raw.name, 160);
@@ -4822,6 +5985,8 @@ const DEFAULT_TEMPLATES = [
       weight: Math.max(0, Math.min(100000, Math.round(Number(raw.weight) || 0))),
       iata: (raw.iata === 'cabin-only' || raw.iata === 'hold-only') ? raw.iata : '',
       phase,
+      person: inferLegacyPerson(raw),
+      custom: Boolean(raw.custom || String(raw.id || '').startsWith('custom_')),
       checked: Boolean(raw.checked)
     };
   }
@@ -4985,7 +6150,20 @@ const DEFAULT_TEMPLATES = [
     const items = [];
     const seenNames = new Set();
 
-    const add = (name, cat, bag, qty = 1, weight = 0, iata = '', phase = 'phase_pack', note = '') => {
+    const inferGeneratedPerson = (name, cat, explicitPerson) => {
+      if (explicitPerson && typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[explicitPerson]) {
+        return explicitPerson;
+      }
+      if (cat === 'pet') return 'pet';
+      if (cat === 'baby') return 'child';
+      if (/ado|enfant|bébé|garçon|fille/i.test(name)) return 'child';
+      if (cat === 'clothes') return 'adult';
+      if (cat === 'hygiene' && /brosse à dents|déodorant|rasoir|protections|maquillage|épiler|coupe-ongles|crème hydratante|après-rasage/i.test(name)) return 'adult';
+      if (cat === 'health' && /pilule/i.test(name)) return 'adult';
+      return 'shared';
+    };
+
+    const add = (name, cat, bag, qty = 1, weight = 0, iata = '', phase = 'phase_pack', note = '', person = '') => {
       const norm = name.toLowerCase().trim();
       if (seenNames.has(norm)) return;
       seenNames.add(norm);
@@ -4999,6 +6177,8 @@ const DEFAULT_TEMPLATES = [
         weight,
         iata: isPlane ? iata : '',
         phase,
+        person: inferGeneratedPerson(name, cat, person),
+        custom: false,
         checked: false
       });
     };
@@ -5040,7 +6220,10 @@ const DEFAULT_TEMPLATES = [
 
     if (totalPets > 0) {
       if (p.pets.takesPet) {
-        add(`Passeport européen (${petsDesc}) + Vaccin rage à jour + Puce électronique`, 'pet', 'daypack', totalPets, 30, 'cabin-only', 'phase_6months');
+        const petDocLabel = country.region === 'Europe'
+          ? 'Passeport européen'
+          : 'Certificat sanitaire international / Passeport animal';
+        add(`${petDocLabel} (${petsDesc}) + Vaccin rage à jour + Puce électronique`, 'pet', 'daypack', totalPets, 30, 'cabin-only', 'phase_6months');
         add(`Réserver le titre de transport pour ${totalPets > 1 ? 'les animaux' : "l'animal"} (${petsDesc}) (train/avion/ferry)`, 'pet', 'daypack', totalPets, 10, '', 'phase_6months');
         add("Confirmer avec le logement l'accueil des animaux", 'pet', 'daypack', 1, 0, '', 'phase_6months');
       } else {
@@ -5167,11 +6350,11 @@ const DEFAULT_TEMPLATES = [
       add('Pyjamas enfant', 'baby', 'soute', 2 * totalChildren, 180, '', 'phase_pack');
       add("Doudou / Peluche préférée de l'enfant", 'baby', 'daypack', totalChildren, 100, '', 'phase_pack');
       add('Brosse à dents enfant + Dentifrice junior', 'baby', 'cabine', totalChildren, 70, '', 'phase_pack');
-      add('Cahier de coloriage, feutres & livres de jeux', 'practical', 'daypack', totalChildren, 250, '', 'phase_pack');
-      add('Gourde enfant étanche', 'practical', 'daypack', totalChildren, 150, '', 'phase_pack');
-      add('Crème solaire enfant très haute protection SPF 50+', 'health', 'soute', 1, 150, '', 'phase_pack');
+      add('Cahier de coloriage, feutres & livres de jeux', 'practical', 'daypack', totalChildren, 250, '', 'phase_pack', '', 'child');
+      add('Gourde enfant étanche', 'practical', 'daypack', totalChildren, 150, '', 'phase_pack', '', 'child');
+      add('Crème solaire enfant très haute protection SPF 50+', 'health', 'soute', 1, 150, '', 'phase_pack', '', 'child');
       if (transport === 'voiture') {
-        add('Réhausseur auto / Siège enfant adapté', 'practical', 'soute', totalChildren, 2000, '', 'phase_pack');
+        add('Réhausseur auto / Siège enfant adapté', 'practical', 'soute', totalChildren, 2000, '', 'phase_pack', '', 'child');
       }
     }
 
@@ -5185,11 +6368,11 @@ const DEFAULT_TEMPLATES = [
       add('Sous-vêtements, brassières & collants ado fille', 'clothes', 'soute', q * p.teensGirls, 70, '', 'phase_pack');
     }
     if (totalTeens > 0) {
-      add('Smartphone + Chargeur personnel + Câble long', 'tech', 'daypack', totalTeens, 200, '', 'phase_pack');
-      add('Écouteurs sans fil ou casque audio ado', 'tech', 'daypack', totalTeens, 180, 'cabin-only', 'phase_pack');
-      add('Batterie externe individuelle (Powerbank)', 'tech', 'daypack', totalTeens, 220, 'cabin-only', 'phase_pack');
-      add('Trousse de toilette ado (déodorant, soins visage)', 'hygiene', 'cabine', totalTeens, 200, '', 'phase_pack');
-      add("Carte d'identité / Passeport ado + Carte étudiant/transport", 'admin', 'daypack', totalTeens, 30, 'cabin-only', 'phase_pack');
+      add('Smartphone + Chargeur personnel + Câble long', 'tech', 'daypack', totalTeens, 200, '', 'phase_pack', '', 'child');
+      add('Écouteurs sans fil ou casque audio ado', 'tech', 'daypack', totalTeens, 180, 'cabin-only', 'phase_pack', '', 'child');
+      add('Batterie externe individuelle (Powerbank)', 'tech', 'daypack', totalTeens, 220, 'cabin-only', 'phase_pack', '', 'child');
+      add('Trousse de toilette ado (déodorant, soins visage)', 'hygiene', 'cabine', totalTeens, 200, '', 'phase_pack', '', 'child');
+      add("Carte d'identité / Passeport ado + Carte étudiant/transport", 'admin', 'daypack', totalTeens, 30, 'cabin-only', 'phase_pack', '', 'child');
     }
 
     // --- Animaux (si voyage avec nous) ---
@@ -5457,8 +6640,39 @@ const DEFAULT_TEMPLATES = [
   }
 
   // === STATE & LOCALSTORAGE ===
-  function loadState() {
+  function getActiveStorageKey() {
+    return activeCloudUser?.uid ? `valise_user_data_${activeCloudUser.uid}` : STORAGE_KEY;
+  }
+
+  function createEmptyAppState() {
+    return {
+      trips: [],
+      activeTripId: null,
+      customTemplates: [],
+      viewMode: 'chrono',
+      filterPhase: 'all',
+      filterBaggage: 'all',
+      filterStatus: 'all',
+      searchQuery: '',
+      collapsedSections: {}
+    };
+  }
+
+  function loadGuestLocalState() {
     const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY_V3) || localStorage.getItem(LEGACY_STORAGE_KEY_V2);
+    if (!saved) return null;
+    try {
+      return sanitizeImportedState(JSON.parse(saved));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function loadState() {
+    const key = getActiveStorageKey();
+    const saved = activeCloudUser?.uid
+      ? localStorage.getItem(key)
+      : (localStorage.getItem(key) || localStorage.getItem(LEGACY_STORAGE_KEY_V3) || localStorage.getItem(LEGACY_STORAGE_KEY_V2));
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -5471,16 +6685,18 @@ const DEFAULT_TEMPLATES = [
         console.warn('Erreur lecture cache local:', e);
       }
     }
-    appState.trips = [];
-    appState.activeTripId = null;
+    appState = createEmptyAppState();
   }
 
-  function saveState(shouldRender = true) {
+  function saveState(shouldRender = true, skipCloudPush = false) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      localStorage.setItem(getActiveStorageKey(), JSON.stringify(appState));
     } catch (e) {
       console.warn('Erreur sauvegarde localStorage:', e);
       showToast('Espace de stockage local saturé');
+    }
+    if (!skipCloudPush && activeCloudUser?.uid && window.ValiseCloud) {
+      window.ValiseCloud.pushState(appState);
     }
     if (shouldRender) render();
   }
@@ -5510,9 +6726,14 @@ const DEFAULT_TEMPLATES = [
     const container = document.getElementById('toastContainer');
     if (!container) return;
 
-    const { actionLabel = '', onAction = null, duration = actionLabel ? 4200 : 2600 } = options;
+    const { actionLabel = '', onAction = null, duration = actionLabel ? 4200 : 2600, replaceId = '' } = options;
+    if (replaceId) {
+      container.querySelectorAll(`[data-toast-id="${CSS.escape(replaceId)}"]`).forEach(old => old.remove());
+    }
+
     const el = document.createElement('div');
     el.className = 'toast';
+    if (replaceId) el.dataset.toastId = replaceId;
 
     const msgSpan = document.createElement('span');
     msgSpan.textContent = message;
@@ -5567,7 +6788,12 @@ const DEFAULT_TEMPLATES = [
     loadState();
     initFormComponents();
     initListeners();
+    initAuthModule();
     render();
+
+    if (window.ValiseCloud && typeof window.ValiseCloud.init === 'function') {
+      window.ValiseCloud.init();
+    }
 
     if (!isNativeAndroidApp() && window.location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -5883,7 +7109,7 @@ const DEFAULT_TEMPLATES = [
       const isSelected = selectedCountryKey === key;
       return `
         <button type="button" class="country-picker-item ${isSelected ? 'selected' : ''}" data-country-key="${escapeHtml(key)}">
-          <span class="country-item-flag">${c.flag}</span>
+          <span class="country-item-flag">${getCountryFlagSvg(key)}</span>
           <div class="country-item-info">
             <span class="country-item-name">${escapeHtml(c.name)}</span>
             <span class="country-item-meta">${escapeHtml(c.region)} · ${escapeHtml(c.currency)} · ${escapeHtml(c.plug)}</span>
@@ -5898,7 +7124,7 @@ const DEFAULT_TEMPLATES = [
     selectedCountryKey = COUNTRIES[key] ? key : 'france';
     const c = COUNTRIES[selectedCountryKey];
     document.getElementById('tripCountrySelect').value = selectedCountryKey;
-    document.getElementById('selectedCountryFlag').textContent = c.flag;
+    document.getElementById('selectedCountryFlag').innerHTML = getCountryFlagSvg(key);
     document.getElementById('selectedCountryName').textContent = c.name;
     document.getElementById('selectedCountryMeta').textContent = `${c.region} · Prise ${c.plug} · ${c.currency}`;
     closeCountryPickerModal();
@@ -5950,6 +7176,11 @@ const DEFAULT_TEMPLATES = [
   function initListeners() {
     // Header & More Menu
     document.getElementById('btnThemeToggle')?.addEventListener('click', toggleTheme);
+    document.getElementById('btnAccount')?.addEventListener('click', openAuthModal);
+    document.getElementById('btnMenuAccount')?.addEventListener('click', () => {
+      closeMoreMenu();
+      openAuthModal();
+    });
     document.getElementById('btnNewTripHeader')?.addEventListener('click', () => openTripModal(null));
     document.getElementById('btnTripSwitcher')?.addEventListener('click', openTripsModal);
     document.getElementById('brandHomeBtn')?.addEventListener('click', (e) => {
@@ -6036,6 +7267,7 @@ const DEFAULT_TEMPLATES = [
         else if (action === 'qty-inc') adjustItemQty(id, 1);
         else if (action === 'qty-dec') adjustItemQty(id, -1);
         else if (action === 'cycle-baggage') cycleItemBaggage(id);
+        else if (action === 'cycle-person') cycleItemPerson(id);
         else if (action === 'fix-iata') fixItemIataConflict(id);
         else if (action === 'toggle-section-check') {
           toggleSectionChecked(actionEl.dataset.sectionType, actionEl.dataset.sectionKey);
@@ -6448,7 +7680,7 @@ const DEFAULT_TEMPLATES = [
     const season = SEASONS[trip.season] || SEASONS.misaison;
     const trans = TRANSPORTS[trip.transport] || TRANSPORTS.avion;
 
-    document.getElementById('heroFlag').textContent = country.flag;
+    document.getElementById('heroFlag').innerHTML = getCountryFlagSvg(trip.countryKey);
     document.getElementById('heroTitle').textContent = trip.name;
 
     const tripDays = Math.max(1, Number(trip.days) || tType.duration || 3);
@@ -6480,7 +7712,7 @@ const DEFAULT_TEMPLATES = [
     const pctGlobal = totalCount > 0 ? Math.round((totalChecked / totalCount) * 100) : 0;
 
     document.getElementById('globalProgressText').textContent = `${totalChecked} / ${totalCount} préparés (${pctGlobal}%)`;
-    document.getElementById('globalWeightText').textContent = `${(getAllWeight(trip) / 1000).toFixed(2)} kg`;
+    document.getElementById('globalWeightText').textContent = `${formatWeightKg(getAllWeight(trip), 2)} kg`;
 
     const fillEl = document.getElementById('globalProgressFill');
     fillEl.style.width = `${pctGlobal}%`;
@@ -6569,8 +7801,8 @@ const DEFAULT_TEMPLATES = [
 
     const weights = calculateWeights(trip);
     const isAll = appState.filterBaggage === 'all';
-    const totalKg = (getAllWeight(trip) / 1000).toFixed(1);
-    const totalCheckedKg = (getAllCheckedWeight(trip) / 1000).toFixed(1);
+    const totalKg = formatWeightKg(getAllWeight(trip), 1);
+    const totalCheckedKg = formatWeightKg(getAllCheckedWeight(trip), 1);
 
     let html = `
       <button type="button" class="bag-pill ${isAll ? 'active' : ''}" data-baggage-filter="all">
@@ -6589,14 +7821,14 @@ const DEFAULT_TEMPLATES = [
 
     for (const [key, bag] of Object.entries(trip.baggages)) {
       const bData = weights[key] || { current: 0, checkedWeight: 0 };
-      const curKg = (bData.current / 1000).toFixed(1);
-      const checkedKg = (bData.checkedWeight / 1000).toFixed(1);
+      const curKg = formatWeightKg(bData.current, 1);
+      const checkedKg = formatWeightKg(bData.checkedWeight, 1);
       const limitKg = (bag.limit / 1000).toFixed(bag.limit % 1000 === 0 ? 0 : 1);
       const pct = bag.limit > 0 ? Math.min(100, Math.round((bData.current / bag.limit) * 100)) : 0;
       const diffGrams = bag.limit - bData.current;
       const marginText = diffGrams >= 0
-        ? `Reste ${(diffGrams / 1000).toFixed(1)} kg`
-        : `+${(Math.abs(diffGrams) / 1000).toFixed(1)} kg !`;
+        ? `Reste ${formatWeightKg(diffGrams, 1)} kg`
+        : `+${formatWeightKg(Math.abs(diffGrams), 1)} kg !`;
       const marginClass = diffGrams >= 0 ? 'ok' : 'over';
 
       let fillClass = '';
@@ -6616,6 +7848,29 @@ const DEFAULT_TEMPLATES = [
           <div class="bag-pill-sub">
             <span>Prêt : ${checkedKg} kg</span>
             <span class="bag-pill-margin ${marginClass}">${marginText}</span>
+          </div>
+        </button>
+      `;
+    }
+
+    const porteData = weights.porte || { current: 0, checkedWeight: 0, count: 0 };
+    if (porteData.count > 0 || appState.filterBaggage === 'porte') {
+      const porteKg = formatWeightKg(porteData.current, 1);
+      const porteCheckedKg = formatWeightKg(porteData.checkedWeight, 1);
+      const portePct = porteData.count > 0 ? Math.round((porteData.checkedCount / porteData.count) * 100) : 0;
+      const isPorteActive = appState.filterBaggage === 'porte';
+      html += `
+        <button type="button" class="bag-pill ${isPorteActive ? 'active' : ''}" data-baggage-filter="porte">
+          <div class="bag-pill-top">
+            <span>Sur soi</span>
+            <span class="bag-pill-weight">${porteKg} kg</span>
+          </div>
+          <div class="bag-pill-bar">
+            <div class="bag-pill-fill" style="width: ${portePct}%"></div>
+          </div>
+          <div class="bag-pill-sub">
+            <span>Prêt : ${porteCheckedKg} kg</span>
+            <span class="bag-pill-margin ok">${porteData.count} art.</span>
           </div>
         </button>
       `;
@@ -6732,6 +7987,8 @@ const DEFAULT_TEMPLATES = [
       renderChronoView(container, filtered, trip, isPlane);
     } else if (appState.viewMode === 'baggage') {
       renderBaggageView(container, filtered, trip, isPlane);
+    } else if (appState.viewMode === 'person') {
+      renderPersonView(container, filtered, trip, isPlane);
     } else {
       renderCategoryView(container, filtered, trip, isPlane);
     }
@@ -6811,10 +8068,12 @@ const DEFAULT_TEMPLATES = [
     let phase = (appState.viewMode === 'chrono' && appState.filterPhase !== 'all') ? appState.filterPhase : 'phase_pack';
     let baggage = appState.filterBaggage !== 'all' ? appState.filterBaggage : getDefaultBaggageKey(trip.baggages);
     let cat = 'practical';
+    let person = 'shared';
 
     if (secType === 'chrono' && CHRONO_PHASES[secKey]) phase = secKey;
     else if (secType === 'bag' && (secKey === 'porte' || trip.baggages[secKey])) baggage = secKey;
     else if (secType === 'cat' && CATEGORIES[secKey]) cat = secKey;
+    else if (secType === 'person' && typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[secKey]) person = secKey;
 
     trip.items.push({
       id: 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
@@ -6823,6 +8082,8 @@ const DEFAULT_TEMPLATES = [
       phase,
       cat,
       baggage,
+      person,
+      custom: true,
       qty: 1,
       weight: 0,
       iata: '',
@@ -6843,6 +8104,7 @@ const DEFAULT_TEMPLATES = [
       if (sectionType === 'chrono') return (item.phase || 'phase_pack') === sectionKey;
       if (sectionType === 'bag') return (item.baggage || 'porte') === sectionKey;
       if (sectionType === 'cat') return (item.cat || 'practical') === sectionKey;
+      if (sectionType === 'person') return (item.person || 'shared') === sectionKey;
       return false;
     });
 
@@ -7015,6 +8277,56 @@ const DEFAULT_TEMPLATES = [
     container.innerHTML = html;
   }
 
+  // 4. Vue par Personne
+  function renderPersonView(container, items, trip, isPlane) {
+    const personOrder = ['adult', 'child', 'pet', 'shared'];
+    const grouped = { adult: [], child: [], pet: [], shared: [] };
+
+    items.forEach(item => {
+      const pKey = (typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[item.person]) ? item.person : 'shared';
+      grouped[pKey].push(item);
+    });
+
+    let html = '';
+    for (const pKey of personOrder) {
+      const list = grouped[pKey] || [];
+      if (list.length === 0) continue;
+
+      const pInfo = PERSON_GROUPS[pKey];
+      const checkedCount = list.filter(i => i.checked).length;
+      const isDone = checkedCount === list.length;
+      const totalGrams = list.reduce((sum, i) => sum + ((i.weight || 0) * (i.qty || 1)), 0);
+      const pWeightKg = (totalGrams / 1000).toFixed(2);
+      const collapseKey = `person:${pKey}`;
+      const isCollapsed = isSectionCollapsed(collapseKey);
+
+      html += `
+        <section class="category-card ${isCollapsed ? 'is-collapsed' : ''}" id="person-sec-${escapeHtml(pKey)}">
+          <div class="category-header" data-collapse-key="${escapeHtml(collapseKey)}" role="button" tabindex="0" aria-expanded="${!isCollapsed}" aria-controls="person-list-${escapeHtml(pKey)}">
+            <div class="category-title">
+              <span class="person-svg-icon" style="color: ${escapeHtml(pInfo.color)}; background: ${escapeHtml(pInfo.badgeBg)};">${pInfo.iconSvg}</span>
+              <span>${escapeHtml(pInfo.label)}</span>
+              <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">· ${pWeightKg} kg</span>
+            </div>
+            <div class="category-header-right">
+              <button type="button" class="section-check-all-btn ${isDone ? 'is-all-done' : ''}" data-action="toggle-section-check" data-section-type="person" data-section-key="${escapeHtml(pKey)}" title="${isDone ? 'Tout décocher' : 'Tout cocher'}" aria-label="${isDone ? 'Tout décocher' : 'Tout cocher'}">
+                ${SVG_CHECK_ALL}
+              </button>
+              <span class="category-count ${isDone ? 'done' : ''}">${checkedCount}/${list.length}</span>
+              ${COLLAPSE_CHEVRON_SVG}
+            </div>
+          </div>
+          <ul class="item-list" id="person-list-${escapeHtml(pKey)}">
+            ${list.map(item => renderItemRow(item, trip, isPlane)).join('')}
+          </ul>
+          ${renderQuickAddRow('person', pKey, `+ Ajouter pour « ${pInfo.label} »...`)}
+        </section>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
   // Rendu d'une ligne d'article
   function renderItemRow(item, trip, isPlane) {
     const safeId = escapeHtml(item.id);
@@ -7044,6 +8356,13 @@ const DEFAULT_TEMPLATES = [
          </span>`
       : '';
 
+    const personKey = (typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[item.person]) ? item.person : 'shared';
+    const personInfo = (typeof PERSON_GROUPS !== 'undefined') ? PERSON_GROUPS[personKey] : null;
+    const showPersonBadge = personInfo && (personKey !== 'shared' || appState.viewMode === 'person');
+    const personBadgeHtml = showPersonBadge
+      ? `<button type="button" class="tag-person-btn" data-action="cycle-person" data-id="${safeId}" title="Changer l'attribution voyageur" style="--person-color: ${escapeHtml(personInfo.color)}; --person-bg: ${escapeHtml(personInfo.badgeBg)}">${escapeHtml(personInfo.shortLabel)}</button>`
+      : '';
+
     return `
       <li class="item-row ${item.checked ? 'checked' : ''} ${conflict ? 'has-iata-conflict' : ''}" id="row-${safeId}">
         <button type="button" class="item-checkbox ${item.checked ? 'checked' : ''}" data-action="toggle-item" data-id="${safeId}" aria-label="Cocher ${escapeHtml(item.name)}">
@@ -7058,6 +8377,7 @@ const DEFAULT_TEMPLATES = [
           <div class="item-sub">
             <button type="button" class="tag-baggage-btn" data-action="cycle-baggage" data-id="${safeId}" title="Changer de bagage">${escapeHtml(bagName)}</button>
             <span class="tag-phase" style="--p-color: ${escapeHtml(phaseInfo.color)}; --p-bg: ${escapeHtml(phaseInfo.badgeBg)}">${escapeHtml(phaseInfo.shortLabel)}</span>
+            ${personBadgeHtml}
             ${iataBadge}
           </div>
         </div>
@@ -7155,6 +8475,20 @@ const DEFAULT_TEMPLATES = [
     showToast(`Déplacé vers « ${nextLabel} »`);
   }
 
+  function cycleItemPerson(id) {
+    const trip = getActiveTrip();
+    const item = trip?.items.find(i => i.id === id);
+    if (!trip || !item || typeof PERSON_GROUPS === 'undefined') return;
+
+    const order = ['shared', 'adult', 'child', 'pet'];
+    const currentIdx = order.indexOf(item.person || 'shared');
+    const nextKey = order[(currentIdx + 1) % order.length];
+    item.person = nextKey;
+
+    saveState();
+    showToast(`Attribué à « ${PERSON_GROUPS[nextKey].label} »`);
+  }
+
   function deleteItem(id) {
     const trip = getActiveTrip();
     if (!trip) return;
@@ -7222,6 +8556,10 @@ const DEFAULT_TEMPLATES = [
     document.getElementById('itemPhase').value = existing
       ? (existing.phase || 'phase_pack')
       : (appState.viewMode === 'chrono' && appState.filterPhase !== 'all' ? appState.filterPhase : 'phase_pack');
+    const personSelect = document.getElementById('itemPerson');
+    if (personSelect) {
+      personSelect.value = existing ? (existing.person || 'shared') : 'shared';
+    }
     document.getElementById('itemCategory').value = existing ? existing.cat : 'practical';
     document.getElementById('itemBaggage').value = existing
       ? existing.baggage
@@ -7247,10 +8585,12 @@ const DEFAULT_TEMPLATES = [
 
     const note = sanitizeText(document.getElementById('itemNote')?.value, 160);
     const editId = document.getElementById('editItemId').value;
+    const personVal = document.getElementById('itemPerson')?.value;
     const payload = {
       name,
       note,
       phase: CHRONO_PHASES[document.getElementById('itemPhase').value] ? document.getElementById('itemPhase').value : 'phase_pack',
+      person: (typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[personVal]) ? personVal : 'shared',
       cat: CATEGORIES[document.getElementById('itemCategory').value] ? document.getElementById('itemCategory').value : 'practical',
       baggage: document.getElementById('itemBaggage').value,
       qty: Math.max(1, Math.min(999, parseInt(document.getElementById('itemQty').value, 10) || 1)),
@@ -7263,7 +8603,7 @@ const DEFAULT_TEMPLATES = [
       if (idx !== -1) trip.items[idx] = { ...trip.items[idx], ...payload };
       showToast('Article mis à jour');
     } else {
-      trip.items.push({ id: 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000), ...payload, checked: false });
+      trip.items.push({ id: 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000), ...payload, custom: true, checked: false });
       showToast('Article ajouté');
     }
 
@@ -7422,6 +8762,14 @@ const DEFAULT_TEMPLATES = [
       const trip = appState.trips.find(t => t.id === editId);
       if (trip) {
         const transportChanged = trip.transport !== transport;
+        const paramsChanged =
+          trip.days !== days ||
+          Boolean(trip.laundry) !== laundry ||
+          trip.countryKey !== countryKey ||
+          trip.season !== season ||
+          JSON.stringify(trip.party) !== JSON.stringify(party) ||
+          JSON.stringify(trip.activities || []) !== JSON.stringify(activities);
+
         trip.name = name;
         trip.countryKey = countryKey;
         trip.tripType = tripType;
@@ -7433,11 +8781,73 @@ const DEFAULT_TEMPLATES = [
         trip.party = party;
         trip.activities = activities;
 
-        const regen = document.getElementById('tripRegenerateItems')?.checked;
-        if (regen) {
+        const applyRecalculatedChecklist = () => {
+          const prevItems = Array.isArray(trip.items) ? trip.items : [];
+          const prevBaggages = trip.baggages || {};
+          const existingByNormName = new Map();
+          prevItems.forEach(it => {
+            const norm = String(it.name || '').toLowerCase().trim();
+            if (norm && !existingByNormName.has(norm)) {
+              existingByNormName.set(norm, it);
+            }
+          });
+
           const fresh = generateChecklist({ countryKey, tripType, season, transport, activities, party, days, laundry });
+
+          // Conserver les franchises personnalisées si le transport n'a pas changé
+          if (!transportChanged) {
+            for (const [bKey, bVal] of Object.entries(prevBaggages)) {
+              if (fresh.baggages[bKey] && Number(bVal?.limit) > 0) {
+                fresh.baggages[bKey].limit = bVal.limit;
+              }
+            }
+          }
+
+          const freshNormNames = new Set();
+          fresh.items.forEach(it => {
+            const norm = String(it.name || '').toLowerCase().trim();
+            freshNormNames.add(norm);
+            const prev = existingByNormName.get(norm);
+            if (prev) {
+              it.checked = Boolean(prev.checked);
+              if (prev.note) it.note = prev.note;
+              if (prev.baggage === 'porte' || fresh.baggages[prev.baggage]) {
+                it.baggage = prev.baggage;
+              }
+              if (prev.person && prev.person !== 'shared' && typeof PERSON_GROUPS !== 'undefined' && PERSON_GROUPS[prev.person]) {
+                it.person = prev.person;
+              }
+            }
+          });
+
+          // Fusionner les articles personnalisés ajoutés à la main qui ne figurent pas dans la checklist générée
+          const fallbackBag = getDefaultBaggageKey(fresh.baggages);
+          let keptCustomCount = 0;
+          prevItems.forEach(prev => {
+            const isCustom = Boolean(prev.custom || String(prev.id || '').startsWith('custom_'));
+            if (!isCustom) return;
+            const norm = String(prev.name || '').toLowerCase().trim();
+            if (!norm || freshNormNames.has(norm)) return;
+
+            freshNormNames.add(norm);
+            const mergedCustom = {
+              ...prev,
+              custom: true,
+              baggage: (prev.baggage === 'porte' || fresh.baggages[prev.baggage]) ? prev.baggage : fallbackBag,
+              iata: transport === 'avion' ? (prev.iata || '') : ''
+            };
+            fresh.items.push(mergedCustom);
+            keptCustomCount++;
+          });
+
           trip.baggages = fresh.baggages;
           trip.items = fresh.items;
+          return keptCustomCount;
+        };
+
+        const regen = document.getElementById('tripRegenerateItems')?.checked;
+        if (regen) {
+          applyRecalculatedChecklist();
         } else {
           const baseBags = JSON.parse(JSON.stringify((TRANSPORTS[transport] || TRANSPORTS.avion).baggages));
           if (!transportChanged && trip.baggages) {
@@ -7461,11 +8871,27 @@ const DEFAULT_TEMPLATES = [
               item.iata = '';
             }
           });
-          if (appState.filterBaggage !== 'all' && !trip.baggages[appState.filterBaggage]) {
+          if (appState.filterBaggage !== 'all' && appState.filterBaggage !== 'porte' && !trip.baggages[appState.filterBaggage]) {
             appState.filterBaggage = 'all';
           }
           if (movedCount > 0) {
             showToast(`Voyage mis à jour (${movedCount} article${movedCount > 1 ? 's' : ''} réaffecté${movedCount > 1 ? 's' : ''})`);
+            closeTripModal();
+            saveState();
+            return;
+          }
+          if (paramsChanged) {
+            showToast('Paramètres modifiés : recalculer les quantités ?', {
+              actionLabel: 'Recalculer',
+              duration: 5500,
+              onAction: () => {
+                const kept = applyRecalculatedChecklist();
+                saveState();
+                showToast(kept > 0
+                  ? `Quantités recalculées (${kept} article${kept > 1 ? 's' : ''} personnalisé${kept > 1 ? 's' : ''} conservé${kept > 1 ? 's' : ''})`
+                  : 'Quantités et articles recalculés');
+              }
+            });
             closeTripModal();
             saveState();
             return;
@@ -7715,10 +9141,10 @@ const DEFAULT_TEMPLATES = [
       const done = t.items.filter(i => i.checked).length;
       return `
         <div class="list-card ${isActive ? 'active' : ''}">
-          <div class="list-card-info" data-action="select-trip" data-id="${safeId}">
-            <h4>${c.flag} ${escapeHtml(t.name)}</h4>
-            <p>${done}/${t.items.length} préparés · ${(getAllWeight(t) / 1000).toFixed(1)} kg</p>
-          </div>
+          <button type="button" class="list-card-info" data-action="select-trip" data-id="${safeId}">
+            <h4>${getCountryFlagSvg(t.countryKey, 'country-flag-inline')} ${escapeHtml(t.name)}</h4>
+            <p>${done}/${t.items.length} préparés · ${formatWeightKg(getAllWeight(t), 1)} kg</p>
+          </button>
           <div class="list-card-actions">
             <button type="button" class="icon-btn icon-btn-subtle" data-action="duplicate-trip" data-id="${safeId}" title="Dupliquer" aria-label="Dupliquer ce voyage">${SVG_COPY}</button>
             <button type="button" class="icon-btn icon-btn-subtle icon-btn-danger" data-action="delete-trip" data-id="${safeId}" title="Supprimer" aria-label="Supprimer">${SVG_TRASH}</button>
@@ -8019,7 +9445,7 @@ const DEFAULT_TEMPLATES = [
 
   async function checkForAppUpdates(isManual = false) {
     if (isManual) {
-      showToast('Vérification des mises à jour sur Git...');
+      showToast('Vérification des mises à jour sur Git...', { replaceId: 'app-update' });
     }
 
     try {
@@ -8036,7 +9462,7 @@ const DEFAULT_TEMPLATES = [
       }
 
       if (!bestUpdate) {
-        if (isManual) showToast('Impossible de vérifier sur Git (vérifiez votre connexion)');
+        if (isManual) showToast('Impossible de vérifier sur Git (vérifiez votre connexion)', { replaceId: 'app-update' });
         return;
       }
 
@@ -8055,12 +9481,12 @@ const DEFAULT_TEMPLATES = [
         latestReleaseData = bestUpdate;
         showUpdateModal(bestUpdate);
       } else if (isManual) {
-        showToast(`Application à jour (v${CURRENT_APP_VERSION})`);
+        showToast(`Application à jour (v${CURRENT_APP_VERSION})`, { replaceId: 'app-update' });
       }
     } catch (err) {
       console.warn('Échec de la vérification de mise à jour:', err);
       if (isManual) {
-        showToast('Impossible de vérifier (vérifiez votre connexion internet)');
+        showToast('Impossible de vérifier (vérifiez votre connexion internet)', { replaceId: 'app-update' });
       }
     }
   }
@@ -8161,6 +9587,362 @@ const DEFAULT_TEMPLATES = [
       downloadBtn.disabled = true;
     }
   }
+
+  // === COMPTE UTILISATEUR, AUTHENTIFICATION & SYNCHRONISATION CLOUD ===
+  function mergeStates(baseState, incomingGuestState) {
+    const merged = sanitizeImportedState(baseState) || createEmptyAppState();
+    const guest = sanitizeImportedState(incomingGuestState);
+    if (!guest) return { state: merged, addedTrips: 0, addedTemplates: 0 };
+
+    const existingTripIds = new Set(merged.trips.map(t => t.id));
+    let addedTrips = 0;
+    guest.trips.forEach(t => {
+      if (!existingTripIds.has(t.id)) {
+        merged.trips.push(t);
+        existingTripIds.add(t.id);
+        addedTrips++;
+      }
+    });
+
+    const existingTplIds = new Set(merged.customTemplates.map(tpl => tpl.id));
+    let addedTemplates = 0;
+    guest.customTemplates.forEach(tpl => {
+      if (!existingTplIds.has(tpl.id)) {
+        merged.customTemplates.push(tpl);
+        existingTplIds.add(tpl.id);
+        addedTemplates++;
+      }
+    });
+
+    if (!merged.activeTripId && merged.trips.length > 0) {
+      merged.activeTripId = guest.activeTripId && merged.trips.some(t => t.id === guest.activeTripId)
+        ? guest.activeTripId
+        : merged.trips[0].id;
+    }
+
+    return { state: merged, addedTrips, addedTemplates };
+  }
+
+  function clearGuestLocalStorageAfterMigration() {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY_V3);
+    localStorage.removeItem(LEGACY_STORAGE_KEY_V2);
+  }
+
+  function setAuthError(msg = '') {
+    const errEl = document.getElementById('authErrorMsg');
+    if (!errEl) return;
+    if (msg) {
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    } else {
+      errEl.textContent = '';
+      errEl.style.display = 'none';
+    }
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode === 'signup' ? 'signup' : 'login';
+    const tabLogin = document.getElementById('authTabLogin');
+    const tabSignup = document.getElementById('authTabSignup');
+    const nameGroup = document.getElementById('authNameGroup');
+    const submitBtn = document.getElementById('btnAuthSubmit');
+    const forgotBtn = document.getElementById('btnAuthForgot');
+    const pwdInput = document.getElementById('authPasswordInput');
+
+    if (tabLogin) {
+      tabLogin.classList.toggle('active', authMode === 'login');
+      tabLogin.setAttribute('aria-selected', String(authMode === 'login'));
+    }
+    if (tabSignup) {
+      tabSignup.classList.toggle('active', authMode === 'signup');
+      tabSignup.setAttribute('aria-selected', String(authMode === 'signup'));
+    }
+    if (nameGroup) nameGroup.style.display = authMode === 'signup' ? 'block' : 'none';
+    if (submitBtn) submitBtn.textContent = authMode === 'signup' ? (authLinkingGuestEmail ? 'Lier mon e-mail' : 'Créer mon compte') : 'Se connecter';
+    if (forgotBtn) forgotBtn.style.display = authMode === 'login' ? 'inline-block' : 'none';
+    if (pwdInput) pwdInput.setAttribute('autocomplete', authMode === 'signup' ? 'new-password' : 'current-password');
+    setAuthError('');
+  }
+
+  function getSyncStatusMeta(status) {
+    switch (status) {
+      case 'synced': return { dotClass: 'sync-dot-synced', text: 'Synchronisé dans le cloud' };
+      case 'syncing': return { dotClass: 'sync-dot-syncing', text: 'Synchronisation...' };
+      case 'offline': return { dotClass: 'sync-dot-offline', text: 'Hors-ligne (sauvegarde locale active)' };
+      case 'error': return { dotClass: 'sync-dot-error', text: 'Erreur de synchronisation' };
+      default: return { dotClass: 'sync-dot-local', text: 'Mode local (appareil uniquement)' };
+    }
+  }
+
+  function updateAuthUI(snapshot = window.ValiseCloud?.getSnapshot?.()) {
+    const snap = snapshot || { configured: false, user: null, syncStatus: 'local' };
+    const user = snap.user;
+    const syncMeta = getSyncStatusMeta(snap.syncStatus);
+
+    // Header pill
+    const headerAvatar = document.getElementById('headerAccountAvatar');
+    const headerLabel = document.getElementById('headerAccountLabel');
+    const headerDot = document.getElementById('headerSyncDot');
+
+    if (headerDot) {
+      headerDot.className = `sync-dot ${syncMeta.dotClass}`;
+    }
+
+    if (user) {
+      const displayName = user.isAnonymous ? 'Invité' : (user.displayName || user.email || 'Compte');
+      if (headerLabel) headerLabel.textContent = displayName;
+      if (headerAvatar) {
+        if (user.photoURL) {
+          headerAvatar.innerHTML = `<img src="${escapeHtml(user.photoURL)}" alt="">`;
+        } else {
+          const initial = escapeHtml((displayName[0] || 'U').toUpperCase());
+          headerAvatar.textContent = initial;
+        }
+      }
+    } else {
+      if (headerLabel) headerLabel.textContent = 'Invité';
+      if (headerAvatar) {
+        headerAvatar.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+      }
+    }
+
+    // Modal views
+    const unconfiguredBanner = document.getElementById('authUnconfiguredBanner');
+    const signedOutView = document.getElementById('authSignedOutView');
+    const signedInView = document.getElementById('authSignedInView');
+
+    if (unconfiguredBanner) {
+      unconfiguredBanner.style.display = snap.configured ? 'none' : 'block';
+    }
+
+    const showSignedIn = Boolean(user) && !authLinkingGuestEmail;
+    if (signedOutView) signedOutView.style.display = showSignedIn ? 'none' : 'block';
+    if (signedInView) signedInView.style.display = showSignedIn ? 'block' : 'none';
+
+    if (showSignedIn && user) {
+      const profileAvatar = document.getElementById('authProfileAvatar');
+      const profileName = document.getElementById('authProfileName');
+      const profileEmail = document.getElementById('authProfileEmail');
+      const modalDot = document.getElementById('authModalSyncDot');
+      const statusText = document.getElementById('authSyncStatusText');
+      const upgradeBox = document.getElementById('authUpgradeGuestBox');
+
+      const name = user.isAnonymous ? 'Compte invité' : (user.displayName || 'Voyageur');
+      if (profileName) profileName.textContent = name;
+      if (profileEmail) profileEmail.textContent = user.isAnonymous ? 'Synchronisation temporaire sur cet appareil' : (user.email || '');
+      if (profileAvatar) {
+        if (user.photoURL) {
+          profileAvatar.innerHTML = `<img src="${escapeHtml(user.photoURL)}" alt="">`;
+        } else {
+          profileAvatar.textContent = (name[0] || 'V').toUpperCase();
+        }
+      }
+      if (modalDot) modalDot.className = `sync-dot ${syncMeta.dotClass}`;
+      if (statusText) statusText.textContent = syncMeta.text;
+      if (upgradeBox) upgradeBox.style.display = user.isAnonymous ? 'block' : 'none';
+    }
+  }
+
+  function openAuthModal() {
+    authLinkingGuestEmail = false;
+    setAuthError('');
+    updateAuthUI();
+    document.getElementById('authModal')?.classList.add('open');
+  }
+
+  function closeAuthModal() {
+    authLinkingGuestEmail = false;
+    document.getElementById('authModal')?.classList.remove('open');
+  }
+
+  function initAuthModule() {
+    if (window.ValiseCloud && typeof window.ValiseCloud.onChange === 'function') {
+      window.ValiseCloud.onChange(updateAuthUI);
+    }
+
+    document.getElementById('authTabLogin')?.addEventListener('click', () => setAuthMode('login'));
+    document.getElementById('authTabSignup')?.addEventListener('click', () => setAuthMode('signup'));
+
+    document.getElementById('btnAuthGoogle')?.addEventListener('click', async () => {
+      if (!window.ValiseCloud?.isConfigured()) {
+        setAuthError('Configurez Firebase dans firebase-config.js pour utiliser la connexion Google.');
+        return;
+      }
+      setAuthError('');
+      try {
+        const user = await window.ValiseCloud.signInWithGoogle();
+        if (user) {
+          closeAuthModal();
+          showToast(`Bienvenue ${user.displayName || ''} !`);
+        }
+      } catch (err) {
+        setAuthError(err.message || 'Erreur de connexion Google.');
+      }
+    });
+
+    document.getElementById('authEmailForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!window.ValiseCloud?.isConfigured()) {
+        setAuthError('Configurez Firebase dans firebase-config.js pour activer les comptes.');
+        return;
+      }
+      const email = document.getElementById('authEmailInput')?.value?.trim() || '';
+      const password = document.getElementById('authPasswordInput')?.value || '';
+      const displayName = document.getElementById('authNameInput')?.value?.trim() || '';
+      const submitBtn = document.getElementById('btnAuthSubmit');
+
+      setAuthError('');
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        let user;
+        if (authMode === 'signup') {
+          user = await window.ValiseCloud.signUpWithEmail(email, password, displayName);
+          showToast('Compte créé et synchronisé !');
+        } else {
+          user = await window.ValiseCloud.signInWithEmail(email, password);
+          showToast(`Connecté en tant que ${user.displayName || user.email}`);
+        }
+        authLinkingGuestEmail = false;
+        closeAuthModal();
+      } catch (err) {
+        setAuthError(err.message || 'Erreur lors de la connexion.');
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+
+    document.getElementById('btnAuthForgot')?.addEventListener('click', async () => {
+      if (!window.ValiseCloud?.isConfigured()) return;
+      const email = document.getElementById('authEmailInput')?.value?.trim() || '';
+      if (!email) {
+        setAuthError('Saisissez votre adresse e-mail ci-dessus puis cliquez sur Mot de passe oublié.');
+        return;
+      }
+      setAuthError('');
+      try {
+        await window.ValiseCloud.sendPasswordReset(email);
+        showToast('E-mail de réinitialisation envoyé !');
+      } catch (err) {
+        setAuthError(err.message || 'Impossible d’envoyer l’e-mail.');
+      }
+    });
+
+    document.getElementById('btnAuthGuest')?.addEventListener('click', async () => {
+      if (window.ValiseCloud?.isConfigured()) {
+        try {
+          await window.ValiseCloud.signInAsGuest();
+        } catch (e) {}
+      }
+      closeAuthModal();
+      showToast('Mode hors-ligne / invité activé');
+    });
+
+    document.getElementById('btnUpgradeGoogle')?.addEventListener('click', async () => {
+      try {
+        const user = await window.ValiseCloud.signInWithGoogle();
+        if (user) {
+          updateAuthUI();
+          showToast('Compte lié à Google !');
+        }
+      } catch (err) {
+        showToast(err.message || 'Erreur lors de la liaison Google');
+      }
+    });
+
+    document.getElementById('btnUpgradeEmail')?.addEventListener('click', () => {
+      authLinkingGuestEmail = true;
+      setAuthMode('signup');
+      updateAuthUI();
+    });
+
+    document.getElementById('btnForceSync')?.addEventListener('click', async () => {
+      if (!window.ValiseCloud) return;
+      try {
+        await window.ValiseCloud.forceSync(appState);
+        showToast('Synchronisation terminée ✔');
+      } catch (err) {
+        showToast(err.message || 'Impossible de synchroniser');
+      }
+    });
+
+    document.getElementById('btnSignOut')?.addEventListener('click', () => {
+      showConfirm(
+        'Se déconnecter',
+        'Vos données restent sauvegardées dans votre compte cloud. Elles seront masquées sur cet appareil après déconnexion.',
+        'Se déconnecter',
+        async () => {
+          try {
+            await window.ValiseCloud?.signOut();
+            closeAuthModal();
+            showToast('Vous êtes déconnecté');
+          } catch (err) {
+            showToast(err.message || 'Erreur lors de la déconnexion');
+          }
+        }
+      );
+    });
+
+    updateAuthUI();
+  }
+
+  window.ValiseApp = {
+    onCloudInitialData(user, cloudData) {
+      activeCloudUser = user;
+      const guestState = loadGuestLocalState();
+      const hasGuestData = Boolean(guestState && (guestState.trips.length > 0 || guestState.customTemplates.length > 0));
+      const cleanCloud = cloudData ? sanitizeImportedState(cloudData) : null;
+      const hasCloudData = Boolean(cleanCloud && (cleanCloud.trips.length > 0 || cleanCloud.customTemplates.length > 0));
+
+      let stateToWriteBack = null;
+
+      if (!hasCloudData && hasGuestData) {
+        // Première connexion : migration automatique des voyages locaux vers le compte
+        appState = guestState;
+        clearGuestLocalStorageAfterMigration();
+        saveState(true, true);
+        stateToWriteBack = appState;
+        showToast(`${guestState.trips.length} voyage(s) local(aux) synchronisé(s) avec votre compte !`);
+      } else if (hasCloudData && hasGuestData) {
+        // Fusion intelligente des voyages créés hors-ligne avant connexion
+        const { state: merged, addedTrips, addedTemplates } = mergeStates(cleanCloud, guestState);
+        appState = merged;
+        clearGuestLocalStorageAfterMigration();
+        saveState(true, true);
+        if (addedTrips > 0 || addedTemplates > 0) {
+          stateToWriteBack = appState;
+          showToast(`${addedTrips} voyage(s) local(aux) fusionné(s) avec votre compte !`);
+        }
+      } else if (cleanCloud) {
+        appState = cleanCloud;
+        saveState(true, true);
+      } else {
+        // Nouveau compte vide sans données locales : on charge un éventuel cache utilisateur ou état vide
+        loadState();
+        render();
+        stateToWriteBack = appState;
+      }
+
+      updateAuthUI();
+      return stateToWriteBack;
+    },
+
+    onCloudRemoteUpdate(user, cloudData) {
+      if (!activeCloudUser || activeCloudUser.uid !== user.uid) return;
+      const clean = sanitizeImportedState(cloudData);
+      if (!clean) return;
+      appState = clean;
+      saveState(true, true);
+    },
+
+    onCloudSignedOut() {
+      if (!activeCloudUser) return;
+      activeCloudUser = null;
+      loadState();
+      render();
+      updateAuthUI();
+    }
+  };
 })();
 
   </script>

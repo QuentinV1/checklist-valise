@@ -49,6 +49,14 @@
       </div>
 
       <div class="header-right">
+        <button type="button" class="account-pill" id="btnAccount" title="Compte &amp; Synchronisation" aria-label="Compte &amp; Synchronisation">
+          <span class="account-avatar" id="headerAccountAvatar" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <span class="account-label" id="headerAccountLabel">Invité</span>
+          <span class="sync-dot sync-dot-local" id="headerSyncDot" aria-hidden="true"></span>
+        </button>
+
         <button type="button" class="icon-btn" id="btnNewTripHeader" title="Nouveau voyage" aria-label="Nouveau voyage">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -71,6 +79,11 @@
             </svg>
           </button>
           <div class="dropdown-menu" id="moreDropdown" role="menu">
+            <button type="button" class="dropdown-item" id="btnMenuAccount" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Compte &amp; Synchronisation</span>
+            </button>
+            <div class="dropdown-divider"></div>
             <button type="button" class="dropdown-item" id="btnTemplates" role="menuitem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
               <span>Modèles &amp; Checklists</span>
@@ -125,7 +138,7 @@
           <path d="M9 11v5"/><path d="M15 11v5"/>
         </svg>
       </div>
-      <h1 class="empty-title">Aucun voyage en cours</h1>
+      <h2 class="empty-title">Aucun voyage en cours</h2>
       <p class="empty-subtitle">
         Créez une checklist sur mesure en quelques secondes. Les vêtements, adaptateurs et équipements sont préremplis selon votre destination, saison et activités.
       </p>
@@ -143,7 +156,7 @@
       <div class="quick-presets">
         <p class="quick-presets-label">Démarrage rapide</p>
         <div class="quick-presets-grid">
-          <button type="button" class="preset-chip" data-preset="japon">🇯🇵 Japon · Mi-saison</button>
+          <button type="button" class="preset-chip" data-preset="japon"><svg class="country-flag-svg" viewBox="0 0 24 18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="18" fill="#FFFFFF"/><circle cx="12" cy="9" r="4.8" fill="#BC002D"/></svg> Japon · Mi-saison</button>
           <button type="button" class="preset-chip" data-preset="ski">⛷️ Ski · Hiver</button>
           <button type="button" class="preset-chip" data-preset="plage">🏖️ Plage · Été</button>
           <button type="button" class="preset-chip" data-preset="city">🏙️ City-trip · Week-end</button>
@@ -154,12 +167,13 @@
 
     <!-- Active Trip View -->
     <div id="activeTripView" style="display: none;">
+      <div class="trip-layout">
 
-      <!-- Trip Summary Hero Card -->
+      <!-- Trip Summary Hero Card (Left Sidebar on Desktop >= 768px) -->
       <section class="hero-card">
         <div class="hero-top">
           <div class="hero-title-block">
-            <div class="hero-country-flag" id="heroFlag" aria-hidden="true">🇫🇷</div>
+            <div class="hero-country-flag" id="heroFlag" aria-hidden="true"><svg class="country-flag-svg" viewBox="0 0 24 18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="8" height="18" fill="#002395"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#ED2939"/></svg></div>
             <div class="hero-title-info">
               <div class="hero-title-row">
                 <h1 class="hero-title" id="heroTitle">Mon Voyage</h1>
@@ -193,7 +207,7 @@
           </div>
         </div>
 
-        <!-- View Mode Switcher: Chronologie (défaut) / Bagages / Catégories -->
+        <!-- View Mode Switcher: Chronologie (défaut) / Bagages / Catégories / Personne -->
         <div class="view-mode-tabs" role="tablist" aria-label="Mode d'affichage">
           <button type="button" class="view-mode-btn active" data-view="chrono">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
@@ -206,6 +220,10 @@
           <button type="button" class="view-mode-btn" data-view="category">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             <span>Par Catégorie</span>
+          </button>
+          <button type="button" class="view-mode-btn" data-view="person">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Par Personne</span>
           </button>
         </div>
 
@@ -223,6 +241,9 @@
         <div id="countryInfoBar" class="country-strip" style="display: none;"></div>
         <div id="countryAlertBanner" class="alert-strip" style="display: none;"></div>
       </section>
+
+      <!-- Right Column: Controls & Checklist -->
+      <div class="trip-main-col">
 
       <!-- Search, Segmented Status Filter & Collapse All -->
       <div class="controls-bar">
@@ -272,6 +293,8 @@
           <span>Ajouter un article</span>
         </button>
       </div>
+      </div><!-- /.trip-main-col -->
+      </div><!-- /.trip-layout -->
     </div>
 
   </main>
@@ -298,9 +321,20 @@
           <input type="text" id="itemNote" class="form-control" maxlength="160" placeholder="Ex: À acheter avant départ, Poche avant, Prêté par Paul...">
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="itemPhase">Étape chronologique</label>
-          <select id="itemPhase" class="form-control"></select>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="itemPhase">Étape chronologique</label>
+            <select id="itemPhase" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="itemPerson">Voyageur / Attribution</label>
+            <select id="itemPerson" class="form-control">
+              <option value="shared">Commun / Partagé</option>
+              <option value="adult">Adulte</option>
+              <option value="child">Enfant</option>
+              <option value="pet">Animal</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-row">
@@ -372,7 +406,7 @@
           <label class="form-label">Destination</label>
           <input type="hidden" id="tripCountrySelect" value="france">
           <button type="button" class="country-trigger-btn" id="btnCountryTrigger">
-            <span class="country-trigger-flag" id="selectedCountryFlag">🇫🇷</span>
+            <span class="country-trigger-flag" id="selectedCountryFlag"><svg class="country-flag-svg" viewBox="0 0 24 18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="8" height="18" fill="#002395"/><rect x="8" width="8" height="18" fill="#FFFFFF"/><rect x="16" width="8" height="18" fill="#ED2939"/></svg></span>
             <div class="country-trigger-info">
               <span class="country-trigger-name" id="selectedCountryName">France (Métropole / Corse)</span>
               <span class="country-trigger-meta" id="selectedCountryMeta">Europe · Prise Type E · Euro (€)</span>
@@ -781,9 +815,109 @@
     </div>
   </div>
 
+  <!-- Modal: Compte & Authentification -->
+  <div class="modal-overlay" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <div class="modal-sheet modal-sheet-sm">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="authModalTitle">Compte &amp; Synchronisation</h2>
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="authModal" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- État non configuré -->
+      <div id="authUnconfiguredBanner" class="auth-info-banner" style="display: none;">
+        <strong>Mode local actif</strong> : renseignez votre configuration Firebase dans <code>firebase-config.js</code> pour activer la connexion par utilisateur et la sauvegarde cloud.
+      </div>
+
+      <!-- Vue Connexion / Inscription -->
+      <div id="authSignedOutView">
+        <p class="auth-subtitle">Connectez-vous pour retrouver vos valises et checklists sur tous vos appareils (Web &amp; Android).</p>
+
+        <button type="button" class="btn btn-google" id="btnAuthGoogle">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+            <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+          </svg>
+          <span>Continuer avec Google</span>
+        </button>
+
+        <div class="auth-divider"><span>ou par e-mail</span></div>
+
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tab active" id="authTabLogin" role="tab" aria-selected="true">Connexion</button>
+          <button type="button" class="auth-tab" id="authTabSignup" role="tab" aria-selected="false">Créer un compte</button>
+        </div>
+
+        <form id="authEmailForm" class="auth-form">
+          <div class="form-group" id="authNameGroup" style="display: none;">
+            <label for="authNameInput">Prénom ou pseudo</label>
+            <input type="text" id="authNameInput" class="input" placeholder="Ex : Quentin" maxlength="60" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="authEmailInput">Adresse e-mail</label>
+            <input type="email" id="authEmailInput" class="input" placeholder="nom@exemple.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="authPasswordInput">Mot de passe</label>
+            <input type="password" id="authPasswordInput" class="input" placeholder="6 caractères minimum" required minlength="6" autocomplete="current-password">
+          </div>
+          <div class="auth-error-msg" id="authErrorMsg" role="alert" style="display: none;"></div>
+          <button type="submit" class="btn btn-primary" id="btnAuthSubmit" style="width: 100%;">Se connecter</button>
+          <button type="button" class="auth-forgot-link" id="btnAuthForgot">Mot de passe oublié ?</button>
+        </form>
+
+        <div class="auth-divider"><span>ou</span></div>
+
+        <button type="button" class="btn btn-secondary" id="btnAuthGuest" style="width: 100%;">
+          Continuer en mode hors-ligne / invité
+        </button>
+        <p class="auth-guest-hint">Vos voyages restent enregistrés sur cet appareil. Vous pourrez créer un compte plus tard sans rien perdre.</p>
+      </div>
+
+      <!-- Vue Connecté -->
+      <div id="authSignedInView" style="display: none;">
+        <div class="auth-profile-card">
+          <div class="auth-profile-avatar" id="authProfileAvatar">Q</div>
+          <div class="auth-profile-info">
+            <div class="auth-profile-name" id="authProfileName">Utilisateur</div>
+            <div class="auth-profile-email" id="authProfileEmail">email@exemple.com</div>
+            <div class="auth-sync-badge" id="authSyncBadge">
+              <span class="sync-dot sync-dot-synced" id="authModalSyncDot"></span>
+              <span id="authSyncStatusText">Synchronisé dans le cloud</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="authUpgradeGuestBox" class="auth-upgrade-box" style="display: none;">
+          <p><strong>Compte invité actif</strong> — Liez un e-mail ou Google pour sauvegarder vos voyages définitivement et y accéder depuis d'autres appareils.</p>
+          <div class="auth-upgrade-actions">
+            <button type="button" class="btn btn-primary btn-sm" id="btnUpgradeGoogle">Lier Google</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnUpgradeEmail">Lier un e-mail</button>
+          </div>
+        </div>
+
+        <div class="auth-signedin-actions">
+          <button type="button" class="btn btn-secondary" id="btnForceSync" style="width: 100%;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Synchroniser maintenant</span>
+          </button>
+          <button type="button" class="btn btn-danger-outline" id="btnSignOut" style="width: 100%;">
+            Se déconnecter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
+  <script src="firebase-config.js"></script>
+  <script type="module" src="firebase-sync.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
