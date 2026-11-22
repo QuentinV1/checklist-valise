@@ -3431,9 +3431,169 @@ body {
   background: var(--danger-soft);
 }
 
+/* Portail d'accès bloquant (Auth + Whitelist + Offline) */
+.auth-gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg-page);
+}
+
+.auth-gate-overlay.active {
+  display: flex;
+}
+
+.auth-gate-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.auth-gate-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.auth-gate-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.auth-gate-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.auth-gate-msg {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.auth-gate-spinner {
+  width: 34px;
+  height: 34px;
+  margin: 12px auto 14px;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: authGateSpin 0.8s linear infinite;
+}
+
+@keyframes authGateSpin {
+  to { transform: rotate(360deg); }
+}
+
+.auth-gate-error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+}
+
+.auth-gate-alert {
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 0.86rem;
+  margin-bottom: 14px;
+}
+
+.auth-gate-alert-danger {
+  background: var(--danger-soft);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  color: var(--danger);
+}
+
+.auth-gate-alert-warn {
+  background: var(--warning-soft);
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  color: var(--warning-text);
+}
+
   </style>
 </head>
 <body>
+
+  <!-- PORTAIL D'ACCÈS BLOQUANT (AUTH + WHITELIST + HORS-LIGNE) -->
+  <div class="auth-gate-overlay active" id="auth-gate-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title">
+    <div class="auth-gate-card">
+      <div class="auth-gate-brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="38" height="38" viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="16" fill="#1E4D3B"/>
+            <path d="M25 19v-3.5a3.5 3.5 0 0 1 3.5-3.5h7a3.5 3.5 0 0 1 3.5 3.5V19" stroke="#FBF7F0" stroke-width="3.2" stroke-linecap="round"/>
+            <rect x="15" y="19" width="34" height="29" rx="6" fill="#FBF7F0"/>
+            <rect x="20" y="48" width="4.5" height="3.5" rx="1.75" fill="#E86A33"/>
+            <rect x="39.5" y="48" width="4.5" height="3.5" rx="1.75" fill="#E86A33"/>
+            <path d="M24 34l5.5 5.5 11-11.5" stroke="#E86A33" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="auth-gate-title" id="auth-gate-title">Valise</div>
+          <div class="auth-gate-subtitle">Checklist &amp; Bagages</div>
+        </div>
+      </div>
+
+      <div id="auth-gate-loading" class="auth-gate-section">
+        <div class="auth-gate-spinner"></div>
+        <p class="auth-gate-msg">Vérification de votre session et de vos autorisations…</p>
+      </div>
+
+      <div id="auth-gate-login" class="auth-gate-section" style="display:none;">
+        <p class="auth-gate-msg" style="margin-bottom:14px;">
+          Connectez-vous pour accéder à vos voyages et checklists.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="gate-auth-email">Email</label>
+          <input type="email" id="gate-auth-email" class="form-control" placeholder="prenom@exemple.fr" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="gate-auth-password">Mot de passe (6 car. min)</label>
+          <input type="password" id="gate-auth-password" class="form-control" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div id="gate-auth-error" class="auth-gate-error" style="display:none;"></div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button type="button" class="btn btn-primary" id="btn-gate-login">Se connecter</button>
+          <button type="button" class="btn btn-secondary" id="btn-gate-register">Créer un compte</button>
+          <button type="button" class="btn btn-secondary" id="btn-gate-google">
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/></svg>
+            Continuer avec Google
+          </button>
+        </div>
+      </div>
+
+      <div id="auth-gate-denied" class="auth-gate-section" style="display:none;">
+        <div class="auth-gate-alert auth-gate-alert-danger">
+          <strong>Accès non autorisé</strong>
+          <p style="margin-top:6px;">Le compte <strong id="gate-denied-email"></strong> n'est pas autorisé sur cette application. Contactez un administrateur.</p>
+        </div>
+        <button type="button" class="btn btn-danger" id="btn-gate-logout-denied" style="width:100%;">Se déconnecter / Changer de compte</button>
+      </div>
+
+      <div id="auth-gate-offline" class="auth-gate-section" style="display:none;">
+        <div class="auth-gate-alert auth-gate-alert-warn">
+          <strong>Connexion Internet requise</strong>
+          <p id="gate-offline-msg" style="margin-top:6px;">Connexion Internet requise pour vérifier vos autorisations</p>
+          <p id="gate-offline-email" style="margin-top:4px; font-size:0.78rem; opacity:0.85;"></p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button type="button" class="btn btn-primary" id="btn-gate-retry">Réessayer</button>
+          <button type="button" class="btn btn-secondary" id="btn-gate-logout-offline">Se déconnecter / Changer de compte</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Top Navigation -->
   <header class="app-header">
@@ -4298,20 +4458,20 @@ body {
 
       <!-- Panneau compte connecté -->
       <div id="auth-logged-in-panel" style="display:none;">
+        <div id="auth-role-tabs" style="display:none; gap:6px; margin-bottom:10px;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-auth-tab-account" style="flex:1;">Compte Cloud</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-auth-tab-access" style="flex:1;">Accès &amp; Rôles</button>
+        </div>
+        <div id="auth-access-denied-msg" class="auth-error-msg" role="alert" style="display:none; margin-bottom:10px;">
+          Votre compte n'est pas autorisé sur cette application. Contactez un administrateur.
+        </div>
+        <div id="auth-account-section">
         <div class="auth-status-card" style="background:var(--bg-subtle); border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:12px; padding:12px;">
           <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Connecté en tant que</div>
           <div id="auth-connected-email" style="font-weight:700; font-size:0.95rem; margin-top:2px; word-break:break-all;"></div>
           <div id="auth-sync-status" style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;"></div>
         </div>
         <div id="auth-sync-error-msg" class="auth-error-msg" role="alert" style="display:none; margin-bottom:10px;"></div>
-        <div id="auth-unverified-box" style="display:none; background:rgba(217,119,6,0.12); border:1px solid rgba(217,119,6,0.35); border-radius:10px; padding:10px 12px; margin-bottom:12px; font-size:0.8rem;">
-          <div style="font-weight:700; color:var(--warning-text); margin-bottom:4px;">Adresse e-mail non vérifiée</div>
-          <div id="auth-unverified-msg" style="color:var(--text-secondary); margin-bottom:8px;">Vérifiez votre boîte mail (ou utilisez « Continuer avec Google »).</div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-resend-verif">Renvoyer l'e-mail de vérification</button>
-            <button type="button" class="btn btn-primary btn-sm" id="btn-check-verif">J'ai vérifié</button>
-          </div>
-        </div>
         <div style="display:flex; flex-direction:column; gap:8px;">
           <button type="button" class="btn btn-primary" id="btn-force-sync">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
@@ -4319,6 +4479,8 @@ body {
           </button>
           <button type="button" class="btn btn-danger" id="btn-auth-logout">Se déconnecter</button>
         </div>
+        </div>
+        <div id="auth-access-panel" style="display:none;"></div>
       </div>
     </div>
   </div>
@@ -4346,6 +4508,14 @@ window.VALISE_FIREBASE_CONFIG = {
 // - valise_users/{uid}/trips/{docId} : voyages & checklists de l'utilisateur
 // - valise_users/{uid}/templates/{docId} : modèles personnalisés de l'utilisateur
 // - valise_users/{uid}/settings/main : préférences d'affichage & voyage actif
+
+import {
+  resolveUserAccess,
+  resolveGateAccess,
+  clearCachedAuthAccess,
+  getCachedAuthAccess,
+  renderAccessControlPanel
+} from './access-control.js';
 
 export const FIREBASE_CONFIG = window.VALISE_FIREBASE_CONFIG || {
   projectId: 'quentin-apps-hub',
@@ -4649,7 +4819,12 @@ window.ValiseFirebase = {
   arreterListenersFirestore,
   demarrerSyncFirestore,
   syncAllUserDataToFirestore,
-  setDocSettingsFirestore
+  setDocSettingsFirestore,
+  resolveUserAccess,
+  resolveGateAccess,
+  clearCachedAuthAccess,
+  getCachedAuthAccess,
+  renderAccessControlPanel
 };
 
   </script>
@@ -9773,7 +9948,7 @@ function getCountryFlagSvg(countryKey, className = '') {
     } catch (err) {
       cloudState.syncStatus = 'error';
       cloudState.syncError = err?.code === 'permission-denied'
-        ? 'Accès Firestore refusé (vérifiez que votre e-mail est bien vérifié et autorisé).'
+        ? 'Accès Firestore refusé (vérifiez que votre compte est bien autorisé).'
         : (err?.message || 'Erreur de synchronisation Firestore');
       throw new Error(cloudState.syncError);
     }
@@ -9782,11 +9957,6 @@ function getCountryFlagSvg(countryKey, className = '') {
   function majStatutSyncModal() {
     const statusEl = document.getElementById('auth-sync-status');
     const syncErrEl = document.getElementById('auth-sync-error-msg');
-    const unverifiedBox = document.getElementById('auth-unverified-box');
-    const user = window.ValiseFirebase?.getFirebaseUser?.();
-    if (unverifiedBox) {
-      unverifiedBox.style.display = (user && !user.emailVerified) ? 'block' : 'none';
-    }
     if (!statusEl) return;
 
     if (cloudState.syncStatus === 'syncing') {
@@ -9826,6 +9996,49 @@ function getCountryFlagSvg(countryKey, className = '') {
       const emailEl = document.getElementById('auth-connected-email');
       if (emailEl) emailEl.textContent = user.email || user.displayName || user.uid;
       majStatutSyncModal();
+
+      const tabsEl = document.getElementById('auth-role-tabs');
+      const accountSec = document.getElementById('auth-account-section');
+      const accessPanel = document.getElementById('auth-access-panel');
+      const deniedEl = document.getElementById('auth-access-denied-msg');
+      const btnTabAcc = document.getElementById('btn-auth-tab-account');
+      const btnTabAccess = document.getElementById('btn-auth-tab-access');
+      if (tabsEl) tabsEl.style.display = 'none';
+      if (accountSec) accountSec.style.display = 'block';
+      if (accessPanel) accessPanel.style.display = 'none';
+      if (deniedEl) deniedEl.style.display = 'none';
+      if (btnTabAcc) btnTabAcc.className = 'btn btn-primary btn-sm';
+      if (btnTabAccess) btnTabAccess.className = 'btn btn-secondary btn-sm';
+
+      if (user.email && window.ValiseFirebase?.initFirebase) {
+        window.ValiseFirebase.initFirebase().then(async (fb) => {
+          if (!fb || !window.ValiseFirebase?.resolveUserAccess) return;
+          const access = await window.ValiseFirebase.resolveUserAccess(fb, 'checklist-valise', user.email);
+          if (deniedEl) deniedEl.style.display = (!access.offline && !access.hasAppAccess) ? 'block' : 'none';
+          if (tabsEl) tabsEl.style.display = access.isAdmin ? 'flex' : 'none';
+          if (access.isAdmin && btnTabAcc && btnTabAccess && accountSec && accessPanel) {
+            btnTabAcc.onclick = () => {
+              accountSec.style.display = 'block';
+              accessPanel.style.display = 'none';
+              btnTabAcc.className = 'btn btn-primary btn-sm';
+              btnTabAccess.className = 'btn btn-secondary btn-sm';
+            };
+            btnTabAccess.onclick = () => {
+              accountSec.style.display = 'none';
+              accessPanel.style.display = 'block';
+              btnTabAcc.className = 'btn btn-secondary btn-sm';
+              btnTabAccess.className = 'btn btn-primary btn-sm';
+              window.ValiseFirebase.renderAccessControlPanel({
+                container: accessPanel,
+                fb,
+                user,
+                appId: 'checklist-valise',
+                appName: 'Checklist Valise',
+              });
+            };
+          }
+        });
+      }
     } else if (loggedOutPanel && loggedInPanel) {
       loggedOutPanel.style.display = 'block';
       loggedInPanel.style.display = 'none';
@@ -9874,7 +10087,7 @@ function getCountryFlagSvg(countryKey, className = '') {
     try {
       if (isRegister) {
         await window.ValiseFirebase.inscriptionEmail(email, pwd);
-        showToast('Compte créé ! Vérifiez votre boîte e-mail.');
+        showToast('Compte créé !');
       } else {
         await window.ValiseFirebase.connexionEmail(email, pwd);
         showToast('Connecté au Cloud');
@@ -9910,53 +10123,143 @@ function getCountryFlagSvg(countryKey, className = '') {
     }
   }
 
+  const VALISE_APP_ID = 'checklist-valise';
+
+  function afficherGateEtat(mode, info = {}) {
+    const overlay = document.getElementById('auth-gate-overlay');
+    const loadingEl = document.getElementById('auth-gate-loading');
+    const loginEl = document.getElementById('auth-gate-login');
+    const deniedEl = document.getElementById('auth-gate-denied');
+    const offlineEl = document.getElementById('auth-gate-offline');
+    if (!overlay) return;
+
+    if (mode === 'allowed') {
+      overlay.classList.remove('active');
+      return;
+    }
+
+    overlay.classList.add('active');
+    if (loadingEl) loadingEl.style.display = mode === 'loading' ? 'block' : 'none';
+    if (loginEl) loginEl.style.display = mode === 'login' ? 'block' : 'none';
+    if (deniedEl) deniedEl.style.display = mode === 'denied' ? 'block' : 'none';
+    if (offlineEl) offlineEl.style.display = mode === 'offline' ? 'block' : 'none';
+
+    if (mode === 'denied') {
+      const emailEl = document.getElementById('gate-denied-email');
+      if (emailEl) emailEl.textContent = info.email || '';
+    } else if (mode === 'offline') {
+      const msgEl = document.getElementById('gate-offline-msg');
+      const emailEl = document.getElementById('gate-offline-email');
+      if (msgEl) msgEl.textContent = info.message || 'Connexion Internet requise pour vérifier vos autorisations';
+      if (emailEl) emailEl.textContent = info.email ? `Compte : ${info.email}` : '';
+    }
+  }
+
+  async function verifierEtAppliquerGate(user, { background = false } = {}) {
+    const vf = window.ValiseFirebase;
+    if (!user) {
+      vf?.arreterListenersFirestore?.();
+      reinitialiserEtatCloud();
+      afficherGateEtat('login');
+      return false;
+    }
+
+    if (!background) {
+      afficherGateEtat('loading');
+    }
+
+    const fb = await vf?.initFirebase?.();
+    const res = vf?.resolveGateAccess
+      ? await vf.resolveGateAccess(fb, VALISE_APP_ID, user)
+      : { status: 'offline-blocked', message: 'Connexion Internet requise pour vérifier vos autorisations' };
+
+    if (res.status === 'allowed') {
+      afficherGateEtat('allowed');
+      if (!background || cloudState.syncStatus === 'idle') {
+        await activerSyncCloud();
+      }
+      majStatutSyncModal();
+      render();
+      return true;
+    }
+
+    vf?.arreterListenersFirestore?.();
+    reinitialiserEtatCloud();
+
+    if (res.status === 'denied') {
+      afficherGateEtat('denied', { email: user.email });
+    } else if (res.status === 'offline-blocked') {
+      afficherGateEtat('offline', { email: user.email, message: res.message });
+    } else {
+      afficherGateEtat('login');
+    }
+    majStatutSyncModal();
+    render();
+    return false;
+  }
+
+  async function soumettreGateAuthEmail(isRegister) {
+    const email = document.getElementById('gate-auth-email')?.value || '';
+    const pwd = document.getElementById('gate-auth-password')?.value || '';
+    const errEl = document.getElementById('gate-auth-error');
+    if (errEl) errEl.style.display = 'none';
+    if (!window.ValiseFirebase) {
+      if (errEl) {
+        errEl.textContent = 'Module Cloud Firebase indisponible.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+    try {
+      if (isRegister) {
+        await window.ValiseFirebase.inscriptionEmail(email, pwd);
+      } else {
+        await window.ValiseFirebase.connexionEmail(email, pwd);
+      }
+    } catch (e) {
+      if (errEl) {
+        errEl.textContent = e.message || 'Erreur de connexion.';
+        errEl.style.display = 'block';
+      }
+    }
+  }
+
+  async function soumettreGateAuthGoogle() {
+    const errEl = document.getElementById('gate-auth-error');
+    if (errEl) errEl.style.display = 'none';
+    if (!window.ValiseFirebase) {
+      if (errEl) {
+        errEl.textContent = 'Module Cloud Firebase indisponible.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+    try {
+      await window.ValiseFirebase.connexionGoogle();
+    } catch (e) {
+      if (errEl) {
+        errEl.textContent = e.message || 'Erreur de connexion Google.';
+        errEl.style.display = 'block';
+      }
+    }
+  }
+
+  async function deconnexionGate() {
+    window.ValiseFirebase?.clearCachedAuthAccess?.(VALISE_APP_ID);
+    await window.ValiseFirebase?.deconnexionFirebase?.();
+    reinitialiserEtatCloud();
+    afficherGateEtat('login');
+  }
+
   async function deconnexionCloud() {
     if (!confirm('Se déconnecter du compte Cloud ?')) return;
+    window.ValiseFirebase?.clearCachedAuthAccess?.(VALISE_APP_ID);
     await window.ValiseFirebase?.deconnexionFirebase?.();
     reinitialiserEtatCloud();
     fermerModalAuth();
+    afficherGateEtat('login');
     render();
-    showToast('Déconnecté (vos données locales sont conservées)');
-  }
-
-  async function renvoyerVerificationCloud() {
-    const msgEl = document.getElementById('auth-unverified-msg');
-    const btn = document.getElementById('btn-resend-verif');
-    if (btn) btn.disabled = true;
-    try {
-      const sent = await window.ValiseFirebase.renvoyerEmailVerification();
-      if (msgEl) {
-        msgEl.textContent = sent
-          ? 'E-mail de vérification envoyé ! Vérifiez votre boîte de réception (et les spams), puis cliquez sur « J\'ai vérifié ».'
-          : 'Votre adresse est déjà vérifiée.';
-      }
-    } catch (e) {
-      if (msgEl) msgEl.textContent = e?.message || 'Impossible d\'envoyer l\'e-mail de vérification.';
-    } finally {
-      if (btn) btn.disabled = false;
-    }
-  }
-
-  async function verifierStatutEmailCloud() {
-    const msgEl = document.getElementById('auth-unverified-msg');
-    const btn = document.getElementById('btn-check-verif');
-    if (btn) btn.disabled = true;
-    try {
-      const user = await window.ValiseFirebase.rechargerUtilisateurFirebase();
-      if (user?.emailVerified) {
-        await user.getIdToken(true);
-        await activerSyncCloud();
-        majStatutSyncModal();
-        render();
-        showToast('Adresse e-mail vérifiée ! Synchronisation activée.');
-      } else if (msgEl) {
-        msgEl.textContent = 'Adresse toujours non vérifiée. Cliquez d\'abord sur le lien reçu par e-mail.';
-      }
-    } catch (e) {
-      if (msgEl) msgEl.textContent = e?.message || 'Erreur lors de la vérification.';
-    } finally {
-      if (btn) btn.disabled = false;
-    }
+    showToast('Déconnecté');
   }
 
   function majBoutonHeaderAuth(user) {
@@ -9979,13 +10282,23 @@ function getCountryFlagSvg(countryKey, className = '') {
   }
 
   function initAuthModule() {
+    afficherGateEtat('loading');
+
     document.getElementById('btn-auth-login')?.addEventListener('click', () => soumettreAuthEmail(false));
     document.getElementById('btn-auth-register')?.addEventListener('click', () => soumettreAuthEmail(true));
     document.getElementById('btn-auth-google')?.addEventListener('click', soumettreAuthGoogle);
     document.getElementById('btn-force-sync')?.addEventListener('click', synchroniserMaintenant);
     document.getElementById('btn-auth-logout')?.addEventListener('click', deconnexionCloud);
-    document.getElementById('btn-resend-verif')?.addEventListener('click', renvoyerVerificationCloud);
-    document.getElementById('btn-check-verif')?.addEventListener('click', verifierStatutEmailCloud);
+
+    document.getElementById('btn-gate-login')?.addEventListener('click', () => soumettreGateAuthEmail(false));
+    document.getElementById('btn-gate-register')?.addEventListener('click', () => soumettreGateAuthEmail(true));
+    document.getElementById('btn-gate-google')?.addEventListener('click', soumettreGateAuthGoogle);
+    document.getElementById('btn-gate-logout-denied')?.addEventListener('click', deconnexionGate);
+    document.getElementById('btn-gate-logout-offline')?.addEventListener('click', deconnexionGate);
+    document.getElementById('btn-gate-retry')?.addEventListener('click', () => {
+      const user = window.ValiseFirebase?.getFirebaseUser?.() || null;
+      verifierEtAppliquerGate(user, { background: false });
+    });
 
     document.getElementById('auth-password')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -9994,17 +10307,25 @@ function getCountryFlagSvg(countryKey, className = '') {
       }
     });
 
+    document.getElementById('gate-auth-password')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        soumettreGateAuthEmail(false);
+      }
+    });
+
+    window.addEventListener('online', () => {
+      const user = window.ValiseFirebase?.getFirebaseUser?.();
+      if (user) {
+        verifierEtAppliquerGate(user, { background: true });
+      }
+    });
+
     const attachObserver = () => {
       if (!window.ValiseFirebase?.observerAuth) return false;
       window.ValiseFirebase.observerAuth(async (user) => {
         majBoutonHeaderAuth(user);
-        if (user) {
-          await activerSyncCloud();
-        } else {
-          reinitialiserEtatCloud();
-        }
-        majStatutSyncModal();
-        render();
+        await verifierEtAppliquerGate(user);
       });
       return true;
     };

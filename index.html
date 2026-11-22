@@ -22,6 +22,76 @@
 </head>
 <body>
 
+  <!-- PORTAIL D'ACCÈS BLOQUANT (AUTH + WHITELIST + HORS-LIGNE) -->
+  <div class="auth-gate-overlay active" id="auth-gate-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title">
+    <div class="auth-gate-card">
+      <div class="auth-gate-brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="38" height="38" viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="16" fill="#1E4D3B"/>
+            <path d="M25 19v-3.5a3.5 3.5 0 0 1 3.5-3.5h7a3.5 3.5 0 0 1 3.5 3.5V19" stroke="#FBF7F0" stroke-width="3.2" stroke-linecap="round"/>
+            <rect x="15" y="19" width="34" height="29" rx="6" fill="#FBF7F0"/>
+            <rect x="20" y="48" width="4.5" height="3.5" rx="1.75" fill="#E86A33"/>
+            <rect x="39.5" y="48" width="4.5" height="3.5" rx="1.75" fill="#E86A33"/>
+            <path d="M24 34l5.5 5.5 11-11.5" stroke="#E86A33" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="auth-gate-title" id="auth-gate-title">Valise</div>
+          <div class="auth-gate-subtitle">Checklist &amp; Bagages</div>
+        </div>
+      </div>
+
+      <div id="auth-gate-loading" class="auth-gate-section">
+        <div class="auth-gate-spinner"></div>
+        <p class="auth-gate-msg">Vérification de votre session et de vos autorisations…</p>
+      </div>
+
+      <div id="auth-gate-login" class="auth-gate-section" style="display:none;">
+        <p class="auth-gate-msg" style="margin-bottom:14px;">
+          Connectez-vous pour accéder à vos voyages et checklists.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="gate-auth-email">Email</label>
+          <input type="email" id="gate-auth-email" class="form-control" placeholder="prenom@exemple.fr" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="gate-auth-password">Mot de passe (6 car. min)</label>
+          <input type="password" id="gate-auth-password" class="form-control" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div id="gate-auth-error" class="auth-gate-error" style="display:none;"></div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button type="button" class="btn btn-primary" id="btn-gate-login">Se connecter</button>
+          <button type="button" class="btn btn-secondary" id="btn-gate-register">Créer un compte</button>
+          <button type="button" class="btn btn-secondary" id="btn-gate-google">
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/></svg>
+            Continuer avec Google
+          </button>
+        </div>
+      </div>
+
+      <div id="auth-gate-denied" class="auth-gate-section" style="display:none;">
+        <div class="auth-gate-alert auth-gate-alert-danger">
+          <strong>Accès non autorisé</strong>
+          <p style="margin-top:6px;">Le compte <strong id="gate-denied-email"></strong> n'est pas autorisé sur cette application. Contactez un administrateur.</p>
+        </div>
+        <button type="button" class="btn btn-danger" id="btn-gate-logout-denied" style="width:100%;">Se déconnecter / Changer de compte</button>
+      </div>
+
+      <div id="auth-gate-offline" class="auth-gate-section" style="display:none;">
+        <div class="auth-gate-alert auth-gate-alert-warn">
+          <strong>Connexion Internet requise</strong>
+          <p id="gate-offline-msg" style="margin-top:6px;">Connexion Internet requise pour vérifier vos autorisations</p>
+          <p id="gate-offline-email" style="margin-top:4px; font-size:0.78rem; opacity:0.85;"></p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button type="button" class="btn btn-primary" id="btn-gate-retry">Réessayer</button>
+          <button type="button" class="btn btn-secondary" id="btn-gate-logout-offline">Se déconnecter / Changer de compte</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Navigation -->
   <header class="app-header">
     <div class="header-inner">
@@ -899,14 +969,6 @@
           <div id="auth-sync-status" style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;"></div>
         </div>
         <div id="auth-sync-error-msg" class="auth-error-msg" role="alert" style="display:none; margin-bottom:10px;"></div>
-        <div id="auth-unverified-box" style="display:none; background:rgba(217,119,6,0.12); border:1px solid rgba(217,119,6,0.35); border-radius:10px; padding:10px 12px; margin-bottom:12px; font-size:0.8rem;">
-          <div style="font-weight:700; color:var(--warning-text); margin-bottom:4px;">Adresse e-mail non vérifiée</div>
-          <div id="auth-unverified-msg" style="color:var(--text-secondary); margin-bottom:8px;">Vérifiez votre boîte mail (ou utilisez « Continuer avec Google »).</div>
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-resend-verif">Renvoyer l'e-mail de vérification</button>
-            <button type="button" class="btn btn-primary btn-sm" id="btn-check-verif">J'ai vérifié</button>
-          </div>
-        </div>
         <div style="display:flex; flex-direction:column; gap:8px;">
           <button type="button" class="btn btn-primary" id="btn-force-sync">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>

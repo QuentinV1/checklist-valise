@@ -5,7 +5,7 @@
   "scripts": {
     "build": "node build-standalone.js",
     "build:standalone": "node build-standalone.js",
-    "sync:web": "node build-standalone.js && powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path www | Out-Null; Copy-Item index.html,app.js,data.js,style.css,firebase-config.js,firebase-sync.js,manifest.webmanifest,sw.js,icon-192.png,icon-512.png -Destination www -Force\"",
+    "sync:web": "node build-standalone.js && powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path www | Out-Null; Copy-Item index.html,app.js,data.js,style.css,firebase-config.js,firebase-sync.js,access-control.js,manifest.webmanifest,sw.js,icon-192.png,icon-512.png -Destination www -Force\"",
     "cap:sync": "npm.cmd run sync:web && npx.cmd cap sync android"
   },
   "dependencies": {

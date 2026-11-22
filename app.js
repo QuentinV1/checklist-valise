@@ -4096,7 +4096,7 @@
     } catch (err) {
       cloudState.syncStatus = 'error';
       cloudState.syncError = err?.code === 'permission-denied'
-        ? 'Accès Firestore refusé (vérifiez que votre e-mail est bien vérifié et autorisé).'
+        ? 'Accès Firestore refusé (vérifiez que votre compte est bien autorisé).'
         : (err?.message || 'Erreur de synchronisation Firestore');
       throw new Error(cloudState.syncError);
     }
@@ -4105,11 +4105,6 @@
   function majStatutSyncModal() {
     const statusEl = document.getElementById('auth-sync-status');
     const syncErrEl = document.getElementById('auth-sync-error-msg');
-    const unverifiedBox = document.getElementById('auth-unverified-box');
-    const user = window.ValiseFirebase?.getFirebaseUser?.();
-    if (unverifiedBox) {
-      unverifiedBox.style.display = (user && !user.emailVerified) ? 'block' : 'none';
-    }
     if (!statusEl) return;
 
     if (cloudState.syncStatus === 'syncing') {
@@ -4163,11 +4158,11 @@
       if (btnTabAcc) btnTabAcc.className = 'btn btn-primary btn-sm';
       if (btnTabAccess) btnTabAccess.className = 'btn btn-secondary btn-sm';
 
-      if (user.emailVerified && user.email && window.ValiseFirebase?.initFirebase) {
+      if (user.email && window.ValiseFirebase?.initFirebase) {
         window.ValiseFirebase.initFirebase().then(async (fb) => {
           if (!fb || !window.ValiseFirebase?.resolveUserAccess) return;
           const access = await window.ValiseFirebase.resolveUserAccess(fb, 'checklist-valise', user.email);
-          if (deniedEl) deniedEl.style.display = access.hasAppAccess ? 'none' : 'block';
+          if (deniedEl) deniedEl.style.display = (!access.offline && !access.hasAppAccess) ? 'block' : 'none';
           if (tabsEl) tabsEl.style.display = access.isAdmin ? 'flex' : 'none';
           if (access.isAdmin && btnTabAcc && btnTabAccess && accountSec && accessPanel) {
             btnTabAcc.onclick = () => {
@@ -4240,7 +4235,7 @@
     try {
       if (isRegister) {
         await window.ValiseFirebase.inscriptionEmail(email, pwd);
-        showToast('Compte créé ! Vérifiez votre boîte e-mail.');
+        showToast('Compte créé !');
       } else {
         await window.ValiseFirebase.connexionEmail(email, pwd);
         showToast('Connecté au Cloud');
@@ -4276,53 +4271,143 @@
     }
   }
 
+  const VALISE_APP_ID = 'checklist-valise';
+
+  function afficherGateEtat(mode, info = {}) {
+    const overlay = document.getElementById('auth-gate-overlay');
+    const loadingEl = document.getElementById('auth-gate-loading');
+    const loginEl = document.getElementById('auth-gate-login');
+    const deniedEl = document.getElementById('auth-gate-denied');
+    const offlineEl = document.getElementById('auth-gate-offline');
+    if (!overlay) return;
+
+    if (mode === 'allowed') {
+      overlay.classList.remove('active');
+      return;
+    }
+
+    overlay.classList.add('active');
+    if (loadingEl) loadingEl.style.display = mode === 'loading' ? 'block' : 'none';
+    if (loginEl) loginEl.style.display = mode === 'login' ? 'block' : 'none';
+    if (deniedEl) deniedEl.style.display = mode === 'denied' ? 'block' : 'none';
+    if (offlineEl) offlineEl.style.display = mode === 'offline' ? 'block' : 'none';
+
+    if (mode === 'denied') {
+      const emailEl = document.getElementById('gate-denied-email');
+      if (emailEl) emailEl.textContent = info.email || '';
+    } else if (mode === 'offline') {
+      const msgEl = document.getElementById('gate-offline-msg');
+      const emailEl = document.getElementById('gate-offline-email');
+      if (msgEl) msgEl.textContent = info.message || 'Connexion Internet requise pour vérifier vos autorisations';
+      if (emailEl) emailEl.textContent = info.email ? `Compte : ${info.email}` : '';
+    }
+  }
+
+  async function verifierEtAppliquerGate(user, { background = false } = {}) {
+    const vf = window.ValiseFirebase;
+    if (!user) {
+      vf?.arreterListenersFirestore?.();
+      reinitialiserEtatCloud();
+      afficherGateEtat('login');
+      return false;
+    }
+
+    if (!background) {
+      afficherGateEtat('loading');
+    }
+
+    const fb = await vf?.initFirebase?.();
+    const res = vf?.resolveGateAccess
+      ? await vf.resolveGateAccess(fb, VALISE_APP_ID, user)
+      : { status: 'offline-blocked', message: 'Connexion Internet requise pour vérifier vos autorisations' };
+
+    if (res.status === 'allowed') {
+      afficherGateEtat('allowed');
+      if (!background || cloudState.syncStatus === 'idle') {
+        await activerSyncCloud();
+      }
+      majStatutSyncModal();
+      render();
+      return true;
+    }
+
+    vf?.arreterListenersFirestore?.();
+    reinitialiserEtatCloud();
+
+    if (res.status === 'denied') {
+      afficherGateEtat('denied', { email: user.email });
+    } else if (res.status === 'offline-blocked') {
+      afficherGateEtat('offline', { email: user.email, message: res.message });
+    } else {
+      afficherGateEtat('login');
+    }
+    majStatutSyncModal();
+    render();
+    return false;
+  }
+
+  async function soumettreGateAuthEmail(isRegister) {
+    const email = document.getElementById('gate-auth-email')?.value || '';
+    const pwd = document.getElementById('gate-auth-password')?.value || '';
+    const errEl = document.getElementById('gate-auth-error');
+    if (errEl) errEl.style.display = 'none';
+    if (!window.ValiseFirebase) {
+      if (errEl) {
+        errEl.textContent = 'Module Cloud Firebase indisponible.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+    try {
+      if (isRegister) {
+        await window.ValiseFirebase.inscriptionEmail(email, pwd);
+      } else {
+        await window.ValiseFirebase.connexionEmail(email, pwd);
+      }
+    } catch (e) {
+      if (errEl) {
+        errEl.textContent = e.message || 'Erreur de connexion.';
+        errEl.style.display = 'block';
+      }
+    }
+  }
+
+  async function soumettreGateAuthGoogle() {
+    const errEl = document.getElementById('gate-auth-error');
+    if (errEl) errEl.style.display = 'none';
+    if (!window.ValiseFirebase) {
+      if (errEl) {
+        errEl.textContent = 'Module Cloud Firebase indisponible.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+    try {
+      await window.ValiseFirebase.connexionGoogle();
+    } catch (e) {
+      if (errEl) {
+        errEl.textContent = e.message || 'Erreur de connexion Google.';
+        errEl.style.display = 'block';
+      }
+    }
+  }
+
+  async function deconnexionGate() {
+    window.ValiseFirebase?.clearCachedAuthAccess?.(VALISE_APP_ID);
+    await window.ValiseFirebase?.deconnexionFirebase?.();
+    reinitialiserEtatCloud();
+    afficherGateEtat('login');
+  }
+
   async function deconnexionCloud() {
     if (!confirm('Se déconnecter du compte Cloud ?')) return;
+    window.ValiseFirebase?.clearCachedAuthAccess?.(VALISE_APP_ID);
     await window.ValiseFirebase?.deconnexionFirebase?.();
     reinitialiserEtatCloud();
     fermerModalAuth();
+    afficherGateEtat('login');
     render();
-    showToast('Déconnecté (vos données locales sont conservées)');
-  }
-
-  async function renvoyerVerificationCloud() {
-    const msgEl = document.getElementById('auth-unverified-msg');
-    const btn = document.getElementById('btn-resend-verif');
-    if (btn) btn.disabled = true;
-    try {
-      const sent = await window.ValiseFirebase.renvoyerEmailVerification();
-      if (msgEl) {
-        msgEl.textContent = sent
-          ? 'E-mail de vérification envoyé ! Vérifiez votre boîte de réception (et les spams), puis cliquez sur « J\'ai vérifié ».'
-          : 'Votre adresse est déjà vérifiée.';
-      }
-    } catch (e) {
-      if (msgEl) msgEl.textContent = e?.message || 'Impossible d\'envoyer l\'e-mail de vérification.';
-    } finally {
-      if (btn) btn.disabled = false;
-    }
-  }
-
-  async function verifierStatutEmailCloud() {
-    const msgEl = document.getElementById('auth-unverified-msg');
-    const btn = document.getElementById('btn-check-verif');
-    if (btn) btn.disabled = true;
-    try {
-      const user = await window.ValiseFirebase.rechargerUtilisateurFirebase();
-      if (user?.emailVerified) {
-        await user.getIdToken(true);
-        await activerSyncCloud();
-        majStatutSyncModal();
-        render();
-        showToast('Adresse e-mail vérifiée ! Synchronisation activée.');
-      } else if (msgEl) {
-        msgEl.textContent = 'Adresse toujours non vérifiée. Cliquez d\'abord sur le lien reçu par e-mail.';
-      }
-    } catch (e) {
-      if (msgEl) msgEl.textContent = e?.message || 'Erreur lors de la vérification.';
-    } finally {
-      if (btn) btn.disabled = false;
-    }
+    showToast('Déconnecté');
   }
 
   function majBoutonHeaderAuth(user) {
@@ -4345,13 +4430,23 @@
   }
 
   function initAuthModule() {
+    afficherGateEtat('loading');
+
     document.getElementById('btn-auth-login')?.addEventListener('click', () => soumettreAuthEmail(false));
     document.getElementById('btn-auth-register')?.addEventListener('click', () => soumettreAuthEmail(true));
     document.getElementById('btn-auth-google')?.addEventListener('click', soumettreAuthGoogle);
     document.getElementById('btn-force-sync')?.addEventListener('click', synchroniserMaintenant);
     document.getElementById('btn-auth-logout')?.addEventListener('click', deconnexionCloud);
-    document.getElementById('btn-resend-verif')?.addEventListener('click', renvoyerVerificationCloud);
-    document.getElementById('btn-check-verif')?.addEventListener('click', verifierStatutEmailCloud);
+
+    document.getElementById('btn-gate-login')?.addEventListener('click', () => soumettreGateAuthEmail(false));
+    document.getElementById('btn-gate-register')?.addEventListener('click', () => soumettreGateAuthEmail(true));
+    document.getElementById('btn-gate-google')?.addEventListener('click', soumettreGateAuthGoogle);
+    document.getElementById('btn-gate-logout-denied')?.addEventListener('click', deconnexionGate);
+    document.getElementById('btn-gate-logout-offline')?.addEventListener('click', deconnexionGate);
+    document.getElementById('btn-gate-retry')?.addEventListener('click', () => {
+      const user = window.ValiseFirebase?.getFirebaseUser?.() || null;
+      verifierEtAppliquerGate(user, { background: false });
+    });
 
     document.getElementById('auth-password')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -4360,17 +4455,25 @@
       }
     });
 
+    document.getElementById('gate-auth-password')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        soumettreGateAuthEmail(false);
+      }
+    });
+
+    window.addEventListener('online', () => {
+      const user = window.ValiseFirebase?.getFirebaseUser?.();
+      if (user) {
+        verifierEtAppliquerGate(user, { background: true });
+      }
+    });
+
     const attachObserver = () => {
       if (!window.ValiseFirebase?.observerAuth) return false;
       window.ValiseFirebase.observerAuth(async (user) => {
         majBoutonHeaderAuth(user);
-        if (user) {
-          await activerSyncCloud();
-        } else {
-          reinitialiserEtatCloud();
-        }
-        majStatutSyncModal();
-        render();
+        await verifierEtAppliquerGate(user);
       });
       return true;
     };

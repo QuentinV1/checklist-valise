@@ -3,7 +3,13 @@
 // - valise_users/{uid}/templates/{docId} : modèles personnalisés de l'utilisateur
 // - valise_users/{uid}/settings/main : préférences d'affichage & voyage actif
 
-import { resolveUserAccess, renderAccessControlPanel } from './access-control.js';
+import {
+  resolveUserAccess,
+  resolveGateAccess,
+  clearCachedAuthAccess,
+  getCachedAuthAccess,
+  renderAccessControlPanel
+} from './access-control.js';
 
 export const FIREBASE_CONFIG = window.VALISE_FIREBASE_CONFIG || {
   projectId: 'quentin-apps-hub',
@@ -309,5 +315,8 @@ window.ValiseFirebase = {
   syncAllUserDataToFirestore,
   setDocSettingsFirestore,
   resolveUserAccess,
+  resolveGateAccess,
+  clearCachedAuthAccess,
+  getCachedAuthAccess,
   renderAccessControlPanel
 };

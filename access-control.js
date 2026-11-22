@@ -9,6 +9,7 @@ export const INITIAL_GLOBAL_WHITELIST = [
   { email: 'clementvaslin@gmail.com', displayName: 'Clément', role: 'user' },
   { email: 'delisle-margaux@hotmail.com', displayName: 'Margaux', role: 'user' },
   { email: 'mar9aux-delisle@hotmail.fr', displayName: 'Margaux (alt)', role: 'user' },
+  { email: 'vaslin.muriel45@gmail.com', displayName: 'Muriel', role: 'user' },
 ];
 
 export function normalizeEmail(email) {
@@ -28,43 +29,132 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+export const AUTH_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+export function getAuthCacheKey(appId) {
+  return `hub_auth_cache_${appId}`;
+}
+
+export function getCachedAuthAccess(appId, user) {
+  if (!appId || !user?.uid || !user?.email) return null;
+  try {
+    const raw = localStorage.getItem(getAuthCacheKey(appId));
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (!cached || cached.hasAppAccess !== true) return null;
+    if (cached.appId !== appId) return null;
+    if (cached.uid !== user.uid) return null;
+    if (normalizeEmail(cached.email) !== normalizeEmail(user.email)) return null;
+    if (typeof cached.verifiedAt !== 'number') return null;
+    const age = Date.now() - cached.verifiedAt;
+    if (age < 0 || age > AUTH_CACHE_TTL_MS) return null;
+    return cached;
+  } catch (_) {
+    return null;
+  }
+}
+
+export function saveCachedAuthAccess(appId, user, access) {
+  if (!appId || !user?.uid || !user?.email || !access?.hasAppAccess) return;
+  try {
+    localStorage.setItem(getAuthCacheKey(appId), JSON.stringify({
+      uid: user.uid,
+      email: normalizeEmail(user.email),
+      appId,
+      hasAppAccess: true,
+      isAdmin: !!access.isAdmin,
+      isGlobalAdmin: !!access.isGlobalAdmin,
+      isAppAdmin: !!access.isAppAdmin,
+      role: access.role || (access.isAdmin ? 'admin' : 'user'),
+      appConfigured: !!access.appConfigured,
+      verifiedAt: Date.now(),
+    }));
+  } catch (_) {}
+}
+
+export function clearCachedAuthAccess(appId) {
+  if (!appId) return;
+  try {
+    localStorage.removeItem(getAuthCacheKey(appId));
+  } catch (_) {}
+}
+
+function isOfflineFirestoreError(err) {
+  const code = err?.code || '';
+  const msg = String(err?.message || '').toLowerCase();
+  return (
+    (typeof navigator !== 'undefined' && !navigator.onLine) ||
+    code === 'unavailable' ||
+    code === 'deadline-exceeded' ||
+    msg.includes('offline') ||
+    msg.includes('network') ||
+    msg.includes('failed to fetch')
+  );
+}
+
 export async function resolveUserAccess(fb, appId, userEmail) {
   const email = normalizeEmail(userEmail);
+  const offlineResult = { isGlobalAdmin: false, isAppAdmin: false, isAdmin: false, hasAppAccess: false, appConfigured: false, role: null, offline: true };
   if (!fb?.db || !fb?.fsMod || !email) {
-    return { isGlobalAdmin: false, isAppAdmin: false, isAdmin: false, hasAppAccess: false, appConfigured: false, role: null };
+    return { isGlobalAdmin: false, isAppAdmin: false, isAdmin: false, hasAppAccess: false, appConfigured: false, role: null, offline: typeof navigator !== 'undefined' ? !navigator.onLine : false };
   }
-  const { doc, getDoc } = fb.fsMod;
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return offlineResult;
+  }
+  const { doc } = fb.fsMod;
+  const readDoc = fb.fsMod.getDocFromServer || fb.fsMod.getDoc;
   const db = fb.db;
   const isRoot = email === ROOT_ADMIN_EMAIL;
 
   let isGlobalAdmin = isRoot;
   let inGlobal = isRoot;
   try {
-    const gSnap = await getDoc(doc(db, 'hub_global_whitelist', email));
+    const gSnap = await readDoc(doc(db, 'hub_global_whitelist', email));
     if (gSnap.exists()) {
       inGlobal = true;
       if (gSnap.data()?.role === 'admin') isGlobalAdmin = true;
     }
-  } catch (_) {}
+  } catch (err) {
+    if (isOfflineFirestoreError(err)) return offlineResult;
+  }
 
   let appConfigured = false;
   try {
-    const aSnap = await getDoc(doc(db, 'hub_apps', appId));
+    const aSnap = await readDoc(doc(db, 'hub_apps', appId));
     appConfigured = aSnap.exists();
-  } catch (_) {}
+  } catch (err) {
+    if (isOfflineFirestoreError(err)) return offlineResult;
+  }
 
   let isAppAdmin = isGlobalAdmin;
   let inApp = isGlobalAdmin;
   try {
-    const mSnap = await getDoc(doc(db, 'hub_apps', appId, 'members', email));
+    const mSnap = await readDoc(doc(db, 'hub_apps', appId, 'members', email));
     if (mSnap.exists()) {
       inApp = true;
       if (mSnap.data()?.role === 'admin') isAppAdmin = true;
     }
-  } catch (_) {}
+  } catch (err) {
+    if (isOfflineFirestoreError(err)) return offlineResult;
+  }
 
   const isAdmin = isGlobalAdmin || isAppAdmin;
-  const hasAppAccess = isAdmin || (appConfigured ? inApp : inGlobal || INITIAL_GLOBAL_WHITELIST.some((u) => u.email === email));
+  let allowLegacyFallback = false;
+  if (!isAdmin && !appConfigured && !inGlobal) {
+    let globalSeeded = false;
+    try {
+      const rootSnap = await readDoc(doc(db, 'hub_global_whitelist', ROOT_ADMIN_EMAIL));
+      globalSeeded = rootSnap.exists();
+    } catch (err) {
+      if (isOfflineFirestoreError(err)) return offlineResult;
+      globalSeeded = true;
+    }
+    if (!globalSeeded) {
+      allowLegacyFallback = INITIAL_GLOBAL_WHITELIST.some((u) => u.email === email);
+    }
+  }
+
+  const hasAppAccess = isAdmin || (appConfigured ? inApp : inGlobal || allowLegacyFallback);
 
   return {
     isGlobalAdmin,
@@ -73,7 +163,47 @@ export async function resolveUserAccess(fb, appId, userEmail) {
     hasAppAccess,
     appConfigured,
     role: isAdmin ? 'admin' : hasAppAccess ? 'user' : null,
+    offline: false,
   };
+}
+
+export async function resolveGateAccess(fb, appId, user) {
+  if (!user || !user.email) {
+    return { status: 'unauthenticated', access: null };
+  }
+  const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+  if (!isOnline || !fb?.db || !fb?.fsMod) {
+    const cached = getCachedAuthAccess(appId, user);
+    if (cached) {
+      return { status: 'allowed', offline: true, fromCache: true, access: cached };
+    }
+    return {
+      status: 'offline-blocked',
+      message: 'Connexion Internet requise pour vérifier vos autorisations',
+      access: null,
+    };
+  }
+
+  const access = await resolveUserAccess(fb, appId, user.email);
+  if (access.offline) {
+    const cached = getCachedAuthAccess(appId, user);
+    if (cached) {
+      return { status: 'allowed', offline: true, fromCache: true, access: cached };
+    }
+    return {
+      status: 'offline-blocked',
+      message: 'Connexion Internet requise pour vérifier vos autorisations',
+      access: null,
+    };
+  }
+
+  if (access.hasAppAccess) {
+    saveCachedAuthAccess(appId, user, access);
+    return { status: 'allowed', offline: false, fromCache: false, access };
+  }
+
+  clearCachedAuthAccess(appId);
+  return { status: 'denied', offline: false, fromCache: false, access };
 }
 
 async function seedInitialGlobalWhitelistIfEmpty(fb) {
