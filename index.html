@@ -885,6 +885,14 @@
 
       <!-- Panneau compte connecté -->
       <div id="auth-logged-in-panel" style="display:none;">
+        <div id="auth-role-tabs" style="display:none; gap:6px; margin-bottom:10px;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-auth-tab-account" style="flex:1;">Compte Cloud</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-auth-tab-access" style="flex:1;">Accès &amp; Rôles</button>
+        </div>
+        <div id="auth-access-denied-msg" class="auth-error-msg" role="alert" style="display:none; margin-bottom:10px;">
+          Votre compte n'est pas autorisé sur cette application. Contactez un administrateur.
+        </div>
+        <div id="auth-account-section">
         <div class="auth-status-card" style="background:var(--bg-subtle); border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:12px; padding:12px;">
           <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Connecté en tant que</div>
           <div id="auth-connected-email" style="font-weight:700; font-size:0.95rem; margin-top:2px; word-break:break-all;"></div>
@@ -906,6 +914,8 @@
           </button>
           <button type="button" class="btn btn-danger" id="btn-auth-logout">Se déconnecter</button>
         </div>
+        </div>
+        <div id="auth-access-panel" style="display:none;"></div>
       </div>
     </div>
   </div>

@@ -4149,6 +4149,49 @@
       const emailEl = document.getElementById('auth-connected-email');
       if (emailEl) emailEl.textContent = user.email || user.displayName || user.uid;
       majStatutSyncModal();
+
+      const tabsEl = document.getElementById('auth-role-tabs');
+      const accountSec = document.getElementById('auth-account-section');
+      const accessPanel = document.getElementById('auth-access-panel');
+      const deniedEl = document.getElementById('auth-access-denied-msg');
+      const btnTabAcc = document.getElementById('btn-auth-tab-account');
+      const btnTabAccess = document.getElementById('btn-auth-tab-access');
+      if (tabsEl) tabsEl.style.display = 'none';
+      if (accountSec) accountSec.style.display = 'block';
+      if (accessPanel) accessPanel.style.display = 'none';
+      if (deniedEl) deniedEl.style.display = 'none';
+      if (btnTabAcc) btnTabAcc.className = 'btn btn-primary btn-sm';
+      if (btnTabAccess) btnTabAccess.className = 'btn btn-secondary btn-sm';
+
+      if (user.emailVerified && user.email && window.ValiseFirebase?.initFirebase) {
+        window.ValiseFirebase.initFirebase().then(async (fb) => {
+          if (!fb || !window.ValiseFirebase?.resolveUserAccess) return;
+          const access = await window.ValiseFirebase.resolveUserAccess(fb, 'checklist-valise', user.email);
+          if (deniedEl) deniedEl.style.display = access.hasAppAccess ? 'none' : 'block';
+          if (tabsEl) tabsEl.style.display = access.isAdmin ? 'flex' : 'none';
+          if (access.isAdmin && btnTabAcc && btnTabAccess && accountSec && accessPanel) {
+            btnTabAcc.onclick = () => {
+              accountSec.style.display = 'block';
+              accessPanel.style.display = 'none';
+              btnTabAcc.className = 'btn btn-primary btn-sm';
+              btnTabAccess.className = 'btn btn-secondary btn-sm';
+            };
+            btnTabAccess.onclick = () => {
+              accountSec.style.display = 'none';
+              accessPanel.style.display = 'block';
+              btnTabAcc.className = 'btn btn-secondary btn-sm';
+              btnTabAccess.className = 'btn btn-primary btn-sm';
+              window.ValiseFirebase.renderAccessControlPanel({
+                container: accessPanel,
+                fb,
+                user,
+                appId: 'checklist-valise',
+                appName: 'Checklist Valise',
+              });
+            };
+          }
+        });
+      }
     } else if (loggedOutPanel && loggedInPanel) {
       loggedOutPanel.style.display = 'block';
       loggedInPanel.style.display = 'none';
