@@ -24,69 +24,128 @@
 
   <!-- PORTAIL D'ACCÈS BLOQUANT (AUTH + WHITELIST + HORS-LIGNE) -->
   <div class="auth-gate-overlay active" id="auth-gate-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-gate-title">
-    <div class="auth-gate-card">
-      <div class="auth-gate-brand">
-        <div class="brand-mark" aria-hidden="true">
-          <svg width="38" height="38" viewBox="0 0 64 64" fill="none">
-            <rect width="64" height="64" rx="16" fill="#1E4D3B"/>
-            <path d="M25 19v-3.5a3.5 3.5 0 0 1 3.5-3.5h7a3.5 3.5 0 0 1 3.5 3.5V19" stroke="#FBF7F0" stroke-width="3.2" stroke-linecap="round"/>
-            <rect x="15" y="19" width="34" height="29" rx="6" fill="#FBF7F0"/>
-            <rect x="20" y="48" width="4.5" height="3.5" rx="1.75" fill="#E86A33"/>
-            <rect x="39.5" y="48" width="4.5" height="3.5" rx="1.75" fill="#E86A33"/>
-            <path d="M24 34l5.5 5.5 11-11.5" stroke="#E86A33" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+    <div class="split-auth-card">
+      <!-- Panneau éditorial -->
+      <div class="split-auth-editorial">
         <div>
-          <div class="auth-gate-title" id="auth-gate-title">Valise</div>
-          <div class="auth-gate-subtitle">Checklist &amp; Bagages</div>
+          <div class="split-auth-brand">
+            <div class="split-auth-badge" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 64 64" fill="none">
+                <path d="M25 19v-3.5a3.5 3.5 0 0 1 3.5-3.5h7a3.5 3.5 0 0 1 3.5 3.5V19" stroke="#FBF7F0" stroke-width="3.6" stroke-linecap="round"/>
+                <rect x="15" y="19" width="34" height="29" rx="6" fill="#FBF7F0"/>
+                <rect x="20" y="48" width="4.5" height="3.5" rx="1.75" fill="#E86A33"/>
+                <rect x="39.5" y="48" width="4.5" height="3.5" rx="1.75" fill="#E86A33"/>
+                <path d="M24 34l5.5 5.5 11-11.5" stroke="#E86A33" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="split-auth-brand-title" id="auth-gate-title">Valise</div>
+              <div class="split-auth-brand-sub">Checklist &amp; Bagages</div>
+            </div>
+          </div>
+
+          <h1 class="split-auth-headline">
+            Prépare tes bagages au gramme près sans rien oublier.
+          </h1>
+          <p class="split-auth-lead">
+            Synchronisé en temps réel sur tous tes appareils et accessible hors-ligne en voyage.
+          </p>
+
+          <div class="split-auth-highlights">
+            <div class="split-auth-highlight">
+              <div class="split-auth-highlight-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              </div>
+              <div>
+                <h3>Calcul de poids &amp; IATA</h3>
+                <p>Jauges Soute, Cabine, Sac à dos et règles aériennes.</p>
+              </div>
+            </div>
+            <div class="split-auth-highlight">
+              <div class="split-auth-highlight-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div>
+                <h3>Par voyageur &amp; Modèles</h3>
+                <p>Attribution par personne et listes préconfigurées.</p>
+              </div>
+            </div>
+            <div class="split-auth-highlight">
+              <div class="split-auth-highlight-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+              </div>
+              <div>
+                <h3>Synchro temps réel</h3>
+                <p>Coche tes affaires à plusieurs sur tous tes appareils.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="split-auth-footer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/><path d="m2 2 20 20"/></svg>
+          <span>Mode PWA hors-ligne inclus</span>
         </div>
       </div>
 
-      <div id="auth-gate-loading" class="auth-gate-section">
-        <div class="auth-gate-spinner"></div>
-        <p class="auth-gate-msg">Vérification de votre session et de vos autorisations…</p>
-      </div>
+      <!-- Formulaire -->
+      <div class="split-auth-form-pane">
+        <div id="auth-gate-loading" class="auth-gate-section" style="text-align:center; padding:32px 0;">
+          <div class="auth-gate-spinner"></div>
+          <p class="auth-gate-msg">Vérification de votre session et de vos autorisations…</p>
+        </div>
 
-      <div id="auth-gate-login" class="auth-gate-section" style="display:none;">
-        <p class="auth-gate-msg" style="margin-bottom:14px;">
-          Connectez-vous pour accéder à vos voyages et checklists.
-        </p>
-        <div class="form-group">
-          <label class="form-label" for="gate-auth-email">Email</label>
-          <input type="email" id="gate-auth-email" class="form-control" placeholder="prenom@exemple.fr" autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="gate-auth-password">Mot de passe (6 car. min)</label>
-          <input type="password" id="gate-auth-password" class="form-control" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <div id="gate-auth-error" class="auth-gate-error" style="display:none;"></div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button type="button" class="btn btn-primary" id="btn-gate-login">Se connecter</button>
-          <button type="button" class="btn btn-secondary" id="btn-gate-register">Créer un compte</button>
-          <button type="button" class="btn btn-secondary" id="btn-gate-google">
-            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/></svg>
+        <div id="auth-gate-login" class="auth-gate-section" style="display:none;">
+          <h2 class="split-auth-form-title" id="gate-form-heading">Connexion à ton espace</h2>
+          <p class="split-auth-form-sub">
+            Utilise ton compte autorisé pour retrouver tes voyages et checklists.
+          </p>
+
+          <button type="button" class="split-auth-google-btn" id="btn-gate-google">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
             Continuer avec Google
           </button>
-        </div>
-      </div>
 
-      <div id="auth-gate-denied" class="auth-gate-section" style="display:none;">
-        <div class="auth-gate-alert auth-gate-alert-danger">
-          <strong>Accès non autorisé</strong>
-          <p style="margin-top:6px;">Le compte <strong id="gate-denied-email"></strong> n'est pas autorisé sur cette application. Contactez un administrateur.</p>
-        </div>
-        <button type="button" class="btn btn-danger" id="btn-gate-logout-denied" style="width:100%;">Se déconnecter / Changer de compte</button>
-      </div>
+          <div class="split-auth-divider"><span>ou par e-mail</span></div>
 
-      <div id="auth-gate-offline" class="auth-gate-section" style="display:none;">
-        <div class="auth-gate-alert auth-gate-alert-warn">
-          <strong>Connexion Internet requise</strong>
-          <p id="gate-offline-msg" style="margin-top:6px;">Connexion Internet requise pour vérifier vos autorisations</p>
-          <p id="gate-offline-email" style="margin-top:4px; font-size:0.78rem; opacity:0.85;"></p>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <input type="email" id="gate-auth-email" class="split-auth-input" placeholder="adresse@email.com" autocomplete="email">
+            <input type="password" id="gate-auth-password" class="split-auth-input" placeholder="Mot de passe (6+ caractères)" autocomplete="current-password">
+            <button type="button" class="split-auth-submit-btn" id="btn-gate-login">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              Se connecter par e-mail
+            </button>
+            <button type="button" class="split-auth-submit-btn" id="btn-gate-register" style="display:none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+              Créer un compte
+            </button>
+          </div>
+
+          <button type="button" id="gate-auth-mode-toggle" class="split-auth-toggle-btn" onclick="(function(){var r=document.getElementById('btn-gate-register');var l=document.getElementById('btn-gate-login');var h=document.getElementById('gate-form-heading');var t=document.getElementById('gate-auth-mode-toggle');var reg=r.style.display==='none';r.style.display=reg?'flex':'none';l.style.display=reg?'none':'flex';h.textContent=reg?'Créer ton compte':'Connexion à ton espace';t.textContent=reg?'Déjà inscrit ? Se connecter':'Pas encore de compte ? Créer un compte';})()">
+            Pas encore de compte ? Créer un compte
+          </button>
+
+          <div id="gate-auth-error" class="auth-gate-error" style="display:none; margin-top:12px;"></div>
         </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button type="button" class="btn btn-primary" id="btn-gate-retry">Réessayer</button>
-          <button type="button" class="btn btn-secondary" id="btn-gate-logout-offline">Se déconnecter / Changer de compte</button>
+
+        <div id="auth-gate-denied" class="auth-gate-section" style="display:none;">
+          <div class="auth-gate-alert auth-gate-alert-danger">
+            <strong>Accès non autorisé</strong>
+            <p style="margin-top:6px;">Le compte <strong id="gate-denied-email"></strong> n'est pas autorisé sur cette application. Contactez un administrateur.</p>
+          </div>
+          <button type="button" class="btn btn-danger" id="btn-gate-logout-denied" style="width:100%;">Se déconnecter / Changer de compte</button>
+        </div>
+
+        <div id="auth-gate-offline" class="auth-gate-section" style="display:none;">
+          <div class="auth-gate-alert auth-gate-alert-warn">
+            <strong>Connexion Internet requise</strong>
+            <p id="gate-offline-msg" style="margin-top:6px;">Connexion Internet requise pour vérifier vos autorisations</p>
+            <p id="gate-offline-email" style="margin-top:4px; font-size:0.78rem; opacity:0.85;"></p>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button type="button" class="split-auth-google-btn" id="btn-gate-retry">Réessayer</button>
+            <button type="button" class="split-auth-submit-btn" id="btn-gate-logout-offline">Se déconnecter / Changer de compte</button>
+          </div>
         </div>
       </div>
     </div>
@@ -119,6 +178,10 @@
       </div>
 
       <div class="header-right">
+        <button type="button" class="account-pill" id="btn-feedback-header" title="Envoyer un feedback (évolution ou bug)" aria-label="Envoyer un feedback">
+          <svg class="btn-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+          <span class="btn-text">Feedback</span>
+        </button>
         <button type="button" class="account-pill" id="btn-auth-header" title="Se connecter au Cloud" aria-label="Compte Cloud">
           <svg class="btn-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
           <span class="btn-text account-label">Connexion</span>
@@ -984,6 +1047,47 @@
 
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- MODAL FEEDBACK -->
+  <div class="modal-overlay" id="modal-feedback" role="dialog" aria-modal="true" aria-labelledby="feedbackModalTitle">
+    <div class="modal-sheet modal-sheet-sm">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 class="modal-title modal-title-icon" id="feedbackModalTitle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+          <span>Feedback — Checklist Valise</span>
+        </h2>
+        <button type="button" class="icon-btn icon-btn-subtle" data-close-modal="modal-feedback" aria-label="Fermer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="form-feedback" style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-bottom:6px;">Type de retour</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <button type="button" id="btn-fb-type-evol" class="btn btn-secondary" style="border-width:1.5px; border-color:var(--accent);">Évolution</button>
+              <button type="button" id="btn-fb-type-bug" class="btn btn-secondary">Bug</button>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-bottom:6px;">
+              <label for="feedback-comment-input">Commentaire</label>
+              <span id="feedback-char-count">0 / 2000</span>
+            </div>
+            <textarea id="feedback-comment-input" maxlength="2000" rows="4" required placeholder="Décrivez l'amélioration ou la nouvelle fonctionnalité souhaitée..." style="width:100%; border-radius:10px; border:1px solid var(--border); background:var(--bg-subtle); color:var(--text); padding:10px 12px; font-size:0.88rem; resize:vertical; box-sizing:border-box; font-family:inherit;"></textarea>
+          </div>
+          <p id="feedback-error-msg" style="display:none; margin:0; padding:8px 10px; border-radius:8px; background:rgba(239,68,68,0.12); color:#ef4444; font-size:0.82rem;"></p>
+          <p id="feedback-success-msg" style="display:none; margin:0; padding:8px 10px; border-radius:8px; background:rgba(16,185,129,0.12); color:#10b981; font-size:0.82rem;"></p>
+          <button type="submit" id="btn-feedback-submit" class="btn btn-primary" style="width:100%;">Envoyer le feedback</button>
+        </form>
+        <div id="feedback-history-wrap" style="display:none; margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
+          <div style="font-size:0.74rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">Vos derniers retours</div>
+          <div id="feedback-history-list" style="display:flex; flex-direction:column; gap:8px; max-height:170px; overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="firebase-config.js"></script>
   <script type="module" src="firebase-sync.js"></script>

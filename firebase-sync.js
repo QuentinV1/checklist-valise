@@ -297,6 +297,29 @@ export async function setDocSettingsFirestore(appState) {
   }));
 }
 
+export async function submitFeedbackFirestore({ appId, appName, type, comment, context }) {
+  const instance = await initFirebase();
+  const user = currentUser || instance?.auth?.currentUser || null;
+  if (!instance || !instance.db || !user || !user.emailVerified || !user.email || !navigator.onLine) {
+    return false;
+  }
+  const { collection, addDoc, serverTimestamp } = instance.fsMod;
+  await addDoc(collection(instance.db, 'hub_feedbacks'), {
+    appId: String(appId || 'checklist-valise').slice(0, 60),
+    appName: String(appName || 'Checklist Valise').slice(0, 80),
+    type: type === 'bug' ? 'bug' : 'evolution',
+    comment: String(comment || '').trim().slice(0, 2000),
+    status: 'open',
+    authorUid: user.uid,
+    authorEmail: user.email.trim().toLowerCase(),
+    authorName: (user.displayName || '').trim().slice(0, 80),
+    context: String(context || '').slice(0, 300),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return true;
+}
+
 // Exposer l'API sur window.ValiseFirebase pour app.js (compatible build standalone)
 window.ValiseFirebase = {
   FIREBASE_CONFIG,
@@ -318,5 +341,6 @@ window.ValiseFirebase = {
   resolveGateAccess,
   clearCachedAuthAccess,
   getCachedAuthAccess,
-  renderAccessControlPanel
+  renderAccessControlPanel,
+  submitFeedback: submitFeedbackFirestore
 };

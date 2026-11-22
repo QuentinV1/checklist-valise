@@ -3938,7 +3938,7 @@
 
     const downloadBtn = document.getElementById('updateDownloadBtn');
     if (downloadBtn) {
-      downloadBtn.innerHTML = `<span>Téléchargement lancé ✔</span>`;
+      downloadBtn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">Téléchargement lancé ${SVG_CHECK}</span>`;
       downloadBtn.disabled = true;
     }
   }
@@ -4512,4 +4512,175 @@
     `).join('');
     modal.classList.add('open');
   }
+
+  const FEEDBACK_STORAGE_KEY = 'checklist_valise_feedbacks_v1';
+  let feedbackType = 'evolution';
+
+  function loadLocalFeedbacks() {
+    try {
+      const raw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveLocalFeedbacks(items) {
+    try {
+      localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(items.slice(0, 30)));
+    } catch {
+      // Ignore quota errors
+    }
+  }
+
+  function renderFeedbackHistory() {
+    const wrap = document.getElementById('feedback-history-wrap');
+    const list = document.getElementById('feedback-history-list');
+    if (!wrap || !list) return;
+    const items = loadLocalFeedbacks();
+    if (items.length === 0) {
+      wrap.style.display = 'none';
+      list.innerHTML = '';
+      return;
+    }
+    wrap.style.display = 'block';
+    list.innerHTML = items.slice(0, 8).map(item => {
+      const isBug = item.type === 'bug';
+      const dateStr = new Date(item.createdAt).toLocaleDateString('fr-FR');
+      return `
+        <div style="padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-subtle);font-size:0.8rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-weight:700;font-size:0.74rem;color:${isBug ? '#ef4444' : 'var(--accent)'};">${isBug ? 'Bug' : 'Évolution'}</span>
+            <span style="font-size:0.72rem;color:var(--text-muted);">${item.synced ? 'Envoyé' : 'Local'} · ${escapeHtml(dateStr)}</span>
+          </div>
+          <div style="white-space:pre-wrap;word-break:break-word;">${escapeHtml(item.comment)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function setFeedbackTypeValise(type) {
+    feedbackType = type === 'bug' ? 'bug' : 'evolution';
+    const btnEvol = document.getElementById('btn-fb-type-evol');
+    const btnBug = document.getElementById('btn-fb-type-bug');
+    const textarea = document.getElementById('feedback-comment-input');
+    if (btnEvol) {
+      btnEvol.style.borderColor = feedbackType === 'evolution' ? 'var(--accent)' : 'var(--border)';
+      btnEvol.style.color = feedbackType === 'evolution' ? 'var(--accent)' : 'var(--text)';
+    }
+    if (btnBug) {
+      btnBug.style.borderColor = feedbackType === 'bug' ? '#ef4444' : 'var(--border)';
+      btnBug.style.color = feedbackType === 'bug' ? '#ef4444' : 'var(--text)';
+    }
+    if (textarea) {
+      textarea.placeholder = feedbackType === 'evolution'
+        ? "Décrivez l'amélioration ou la nouvelle fonctionnalité souhaitée..."
+        : 'Décrivez le problème rencontré et comment le reproduire...';
+    }
+  }
+
+  async function flushPendingFeedbacksValise() {
+    if (!window.ValiseFirebase?.submitFeedback) return;
+    const items = loadLocalFeedbacks();
+    const pending = items.filter(x => !x.synced);
+    if (pending.length === 0) return;
+    let changed = false;
+    for (const item of pending) {
+      try {
+        const ok = await window.ValiseFirebase.submitFeedback({
+          appId: 'checklist-valise',
+          appName: 'Checklist Valise',
+          type: item.type,
+          comment: item.comment,
+          context: item.context || ''
+        });
+        if (ok) {
+          item.synced = true;
+          changed = true;
+        }
+      } catch {
+        // Retry later
+      }
+    }
+    if (changed) {
+      saveLocalFeedbacks(items);
+      renderFeedbackHistory();
+    }
+  }
+
+  function ouvrirModalFeedbackValise() {
+    const modal = document.getElementById('modal-feedback');
+    if (!modal) return;
+    const errEl = document.getElementById('feedback-error-msg');
+    const okEl = document.getElementById('feedback-success-msg');
+    if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+    if (okEl) { okEl.style.display = 'none'; okEl.textContent = ''; }
+    setFeedbackTypeValise(feedbackType);
+    renderFeedbackHistory();
+    modal.classList.add('open');
+    flushPendingFeedbacksValise();
+  }
+
+  document.getElementById('btn-feedback-header')?.addEventListener('click', ouvrirModalFeedbackValise);
+  document.getElementById('btn-fb-type-evol')?.addEventListener('click', () => setFeedbackTypeValise('evolution'));
+  document.getElementById('btn-fb-type-bug')?.addEventListener('click', () => setFeedbackTypeValise('bug'));
+  document.getElementById('feedback-comment-input')?.addEventListener('input', (e) => {
+    const c = document.getElementById('feedback-char-count');
+    if (c) c.textContent = `${e.target.value.length} / 2000`;
+  });
+  document.getElementById('form-feedback')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const textarea = document.getElementById('feedback-comment-input');
+    const errEl = document.getElementById('feedback-error-msg');
+    const okEl = document.getElementById('feedback-success-msg');
+    const submitBtn = document.getElementById('btn-feedback-submit');
+    if (!textarea) return;
+    const trimmed = textarea.value.trim();
+    if (!trimmed) {
+      if (errEl) { errEl.textContent = 'Veuillez saisir un commentaire.'; errEl.style.display = 'block'; }
+      return;
+    }
+    if (errEl) errEl.style.display = 'none';
+    if (okEl) okEl.style.display = 'none';
+    if (submitBtn) submitBtn.disabled = true;
+
+    let synced = false;
+    try {
+      if (window.ValiseFirebase?.submitFeedback) {
+        synced = await window.ValiseFirebase.submitFeedback({
+          appId: 'checklist-valise',
+          appName: 'Checklist Valise',
+          type: feedbackType,
+          comment: trimmed,
+          context: ''
+        });
+      }
+    } catch {
+      synced = false;
+    }
+
+    const nextItem = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      type: feedbackType,
+      comment: trimmed,
+      createdAt: new Date().toISOString(),
+      synced,
+      context: ''
+    };
+    const nextHistory = [nextItem, ...loadLocalFeedbacks()].slice(0, 30);
+    saveLocalFeedbacks(nextHistory);
+    renderFeedbackHistory();
+    textarea.value = '';
+    const c = document.getElementById('feedback-char-count');
+    if (c) c.textContent = '0 / 2000';
+    if (submitBtn) submitBtn.disabled = false;
+    if (okEl) {
+      okEl.textContent = synced
+        ? 'Feedback envoyé avec succès !'
+        : 'Feedback enregistré localement. Il sera envoyé dès la connexion au Cloud.';
+      okEl.style.display = 'block';
+    }
+  });
 })();

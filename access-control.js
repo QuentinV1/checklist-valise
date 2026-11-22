@@ -20,6 +20,11 @@ export function isValidEmailFormat(email) {
   return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(String(email || '').trim());
 }
 
+const AC_SVG_CHECK = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
+const AC_SVG_ARROW_RIGHT = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+const AC_SVG_EDIT = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`;
+const AC_SVG_CLOSE = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
 function escapeHtml(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')
@@ -389,13 +394,13 @@ export async function renderAccessControlPanel({ container, fb, user, appId, app
       html += `</div>`;
       html += `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">`;
       if (inApp) {
-        html += `<span style="font-size:0.72rem;color:#10b981;font-weight:600;padding:2px 6px;">✓ Dans l'app</span>`;
+        html += `<span style="display:inline-flex;align-items:center;gap:4px;font-size:0.72rem;color:#10b981;font-weight:600;padding:2px 6px;">${AC_SVG_CHECK} Dans l'app</span>`;
       } else {
-        html += `<button type="button" class="btn btn-primary btn-sm" data-ac-migrate="${escapeHtml(g.email)}">Migrer →</button>`;
+        html += `<button type="button" class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:4px;" data-ac-migrate="${escapeHtml(g.email)}">Migrer ${AC_SVG_ARROW_RIGHT}</button>`;
       }
       if (state.access.isGlobalAdmin) {
-        html += `<button type="button" class="btn btn-secondary btn-sm" data-ac-edit-start="${escapeHtml(g.email)}">✎</button>`;
-        html += `<button type="button" class="btn btn-danger btn-sm" data-ac-delete-global="${escapeHtml(g.email)}" ${isRoot ? 'disabled style="opacity:0.4;"' : ''}>✕</button>`;
+        html += `<button type="button" class="btn btn-secondary btn-sm" data-ac-edit-start="${escapeHtml(g.email)}" title="Modifier" aria-label="Modifier">${AC_SVG_EDIT}</button>`;
+        html += `<button type="button" class="btn btn-danger btn-sm" data-ac-delete-global="${escapeHtml(g.email)}" title="Supprimer" aria-label="Supprimer" ${isRoot ? 'disabled style="opacity:0.4;"' : ''}>${AC_SVG_CLOSE}</button>`;
       }
       html += `</div></div>`;
     }
